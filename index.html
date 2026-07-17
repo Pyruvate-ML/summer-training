@@ -7,159 +7,570 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <!-- 引入 Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <!-- 引入 Tailwind CSS -->
+    <!-- 引入 Tailwind CSS (用于布局和基础工具类) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 自定义 Tailwind 主题 -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0D9488', // 宁静的青海波色
-                        primaryHover: '#0F766E',
-                        bglight: '#F8FAFC',
-                        surface: '#FFFFFF',
-                        textMain: '#334155',
-                        textMuted: '#64748B',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- 引入 Google 像素字体 Pixelify Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #F8FAFC; color: #334155; }
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        /* 核心像素风格变量和纹理 */
+        :root {
+            --pixel-brown-dark: #8B4513; /* 木棕深 */
+            --pixel-brown-deep: #5D2F11;
+            --pixel-brown-light: #D2691E; /* 木棕浅 */
+            --pixel-cream: #FDF1DC; /* 奶油黄/纸张 */
+            --pixel-paper: #FFF5DC;
+            --pixel-grass-dark: #228B22; /* 草绿深 */
+            --pixel-grass-light: #32CD32; /* 草绿浅 */
+            --pixel-sky-dark: #87CEEB; /* 天蓝深 */
+            --pixel-sky-light: #00BFFF; /* 天蓝浅 */
+            --pixel-red: #E74C3C; /* 像素红 */
+            --pixel-yellow: #F1C40F; /* 像素黄 */
+            --pixel-text-dark: #3E2723; /* 深木质文本 */
+            --pixel-text-light: #8D6E63; /* 浅木质文本 */
+        }
+
+        /* 字体 */
+        body, button, input, select, textarea {
+            font-family: 'Pixelify Sans', 'Microsoft YaHei', sans-serif;
+            color: var(--pixel-text-dark);
+            -webkit-font-smoothing: none; /* 像素字体禁用平滑 */
+            image-rendering: pixelated; /* 图像渲染像素化 */
+        }
+
+        /* 像素边框 */
+        .pixel-border {
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset 2px 2px 0 #FFF6D8, inset -2px -2px 0 var(--pixel-brown-dark), 4px 4px 0 rgba(93, 47, 17, 0.35);
+        }
+        .pixel-border-inward {
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset -2px -2px 0 #FFF, inset 2px 2px 0 var(--pixel-brown-dark);
+        }
+
+        /* 像素按钮 */
+        .pixel-btn {
+            background-color: var(--pixel-brown-light);
+            border: 4px solid var(--pixel-brown-dark);
+            color: white;
+            padding: 8px 16px;
+            box-shadow: inset 0 2px 0 #FFF, inset 0 -2px 0 var(--pixel-brown-dark);
+            transition: transform 0.1s;
+        }
+        .pixel-btn:hover {
+            background-color: var(--pixel-brown-dark);
+            transform: translateY(1px);
+        }
+        .pixel-btn:active {
+            transform: translateY(2px);
+            box-shadow: inset 0 -2px 0 #FFF, inset 0 2px 0 var(--pixel-brown-dark);
+        }
+        .pixel-btn-secondary {
+            background-color: #A1887F;
+            border-color: #6D4C41;
+            color: #fff;
+            box-shadow: inset 0 2px 0 #D7CCC8, inset 0 -2px 0 #6D4C41;
+        }
+        .pixel-btn-secondary:hover {
+            background-color: #8D6E63;
+        }
+
+        /* 像素卡片 */
+        .pixel-card {
+            background-color: rgba(255, 245, 220, 0.94);
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset 2px 2px 0 #FFF8E5, inset -2px -2px 0 #C17A2A, 4px 4px 0 rgba(93, 47, 17, 0.2);
+        }
+        .pixel-card-large {
+            background-image: none;
+        }
+        .pixel-stat-card {
+            background-image: none;
+        }
+        .pixel-list-item {
+            background-color: rgba(253, 241, 220, 0.42);
+            background-image: none;
+            border-bottom: 2px dashed #C58A4B;
+        }
+
+        /* 像素标签 */
+        .pixel-tag {
+            border: 2px solid var(--pixel-brown-dark);
+            padding: 2px 6px;
+            background-image: none;
+            box-shadow: inset 1px 1px 0 #FFF, inset -1px -1px 0 var(--pixel-brown-dark);
+        }
+
+        /* 像素输入框 */
+        .pixel-input {
+            background-color: rgba(253, 241, 220, 0.86);
+            background-image: none;
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset -2px -2px 0 #FFF, inset 2px 2px 0 var(--pixel-brown-dark);
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        /* 像素表格 */
+        .pixel-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .pixel-table th, .pixel-table td {
+            border-bottom: 2px dashed #C58A4B;
+            padding: 18px 22px;
+        }
+        .pixel-table th {
+            background-color: #D3A36D;
+            background-image: none;
+            border-right: 2px dashed #C58A4B;
+            color: #fff8e8;
+            font-size: 22px;
+        }
+        .pixel-table td {
+            border-right: 2px dashed #C58A4B;
+            font-size: 20px;
+        }
+        .pixel-table th:last-child, .pixel-table td:last-child {
+            border-right: none;
+        }
+
+        /* 像素图标样式 */
+        .pixel-icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            image-rendering: pixelated;
+        }
+
+        .asset-img {
+            display: block;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .nav-icon {
+            width: clamp(34px, 2.7vw, 48px);
+            height: clamp(34px, 2.7vw, 48px);
+        }
+
+        .section-icon {
+            width: clamp(46px, 4vw, 66px);
+            height: clamp(46px, 4vw, 66px);
+        }
+
+        .metric-icon {
+            width: clamp(42px, 3.4vw, 58px);
+            height: clamp(42px, 3.4vw, 58px);
+            flex: 0 0 auto;
+        }
+
+        .inline-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-block;
+            vertical-align: -6px;
+            image-rendering: pixelated;
+        }
+
+        /* 情绪图表像素化 */
+        #emotionChart {
+            image-rendering: pixelated;
+        }
+
+        /* 背景纹理 (模拟草地/木纹) */
+        .bg-pixel-grass {
+            background-color: var(--pixel-grass-light);
+            background-image: linear-gradient(var(--pixel-grass-dark) 2px, transparent 2px), linear-gradient(90deg, var(--pixel-grass-dark) 2px, transparent 2px);
+            background-size: 8px 8px;
+        }
+
+        .bg-pixel-scene {
+            background-color: #7ec850;
+            background-image:
+                linear-gradient(rgba(34, 139, 34, 0.18), rgba(62, 39, 35, 0.16)),
+                url('./assets/pixel-farm-background.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .bg-pixel-wood {
+            background-color: var(--pixel-brown-light);
+            background-image:
+                linear-gradient(rgba(255, 210, 126, 0.18) 1px, transparent 1px),
+                linear-gradient(rgba(93, 47, 17, 0.34) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(93, 47, 17, 0.16) 1px, transparent 1px);
+            background-size: 100% 26px, 100% 26px, 34px 100%;
+        }
+
+        .paper-panel {
+            background:
+                linear-gradient(rgba(255,255,255,0.23), rgba(255,244,218,0.28)),
+                radial-gradient(circle at 18% 12%, rgba(255,255,255,0.45), transparent 26%),
+                var(--pixel-paper);
+            border: 6px solid var(--pixel-brown-dark);
+            box-shadow: inset 3px 3px 0 #FFF8E5, inset -3px -3px 0 #B96B22, 6px 6px 0 rgba(58, 31, 16, 0.28);
+        }
+
+        .nav-plank {
+            background: rgba(127, 66, 24, 0.62);
+            background-image: none;
+            border: 4px solid var(--pixel-brown-deep);
+            box-shadow: inset 2px 2px 0 #C97C29, inset -2px -2px 0 #4B230F, 3px 3px 0 rgba(58, 31, 16, 0.45);
+        }
+
+        .nav-plank-active {
+            background: #5D4037;
+            outline: 3px solid #FFF1C8;
+            box-shadow: inset 2px 2px 0 #8D6E63, inset -2px -2px 0 #2D160A, 4px 4px 0 rgba(58, 31, 16, 0.5);
+        }
+
+        .pixel-title-icon {
+            width: 64px;
+            height: 64px;
+            display: grid;
+            place-items: center;
+            image-rendering: pixelated;
+        }
+
+        .pixel-title-icon img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .pixel-avatar {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border: 3px solid var(--pixel-brown-dark);
+            background: #FFE0A8;
+            box-shadow: inset 2px 2px 0 #FFF8E5, inset -2px -2px 0 #A76525;
+            overflow: hidden;
+            flex: 0 0 auto;
+        }
+
+        .pixel-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+
+        .pixel-avatar-lg {
+            width: 88px;
+            height: 88px;
+        }
+
+        .corner-flowers::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 38px;
+            background-image:
+                linear-gradient(90deg, transparent 0 36px, rgba(77, 115, 37, 0.75) 36px calc(100% - 36px), transparent calc(100% - 36px)),
+                url('./assets/xinqiao/icons/png/flower_white.png'),
+                url('./assets/xinqiao/icons/png/post_flower.png');
+            background-position:
+                left calc(100% - 10px),
+                left bottom,
+                right bottom;
+            background-size:
+                100% 4px,
+                46px 46px,
+                48px 52px;
+            background-repeat:
+                no-repeat,
+                no-repeat,
+                no-repeat;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .asset-status {
+            min-width: 112px;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 5px 12px;
+            border: 3px solid var(--pixel-brown-dark);
+            background: #fff8e8;
+            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 rgba(93, 47, 17, 0.35), 2px 2px 0 rgba(93, 47, 17, 0.18);
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .asset-status::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: currentColor;
+            box-shadow: 1px 1px 0 rgba(93, 47, 17, 0.35);
+        }
+
+        .asset-skill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 86px;
+            min-height: 30px;
+            padding: 3px 10px;
+            border: 3px solid #2f4f9f;
+            background: #dcecff;
+            box-shadow: inset 1px 1px 0 #f8fbff, inset -1px -1px 0 rgba(47, 79, 159, 0.35), 2px 2px 0 rgba(47, 79, 159, 0.18);
+            color: #17449a;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .status-scheduled {
+            color: #2E7D32;
+            background: #E8F5E9;
+            border-color: #6FA66B;
+        }
+
+        .status-pending {
+            color: #EF6C00;
+            background: #FFF3E0;
+            border-color: #D9913E;
+        }
+
+        .status-finished,
+        .level-normal {
+            color: #6D5A52;
+            background: #EFEBE9;
+            border-color: #8D6E63;
+        }
+
+        .level-focus {
+            color: #EF6C00;
+            background: #FFF3E0;
+            border-color: #D9913E;
+        }
+
+        .level-key {
+            color: #E53935;
+            background: #FFEBEE;
+            border-color: #E05A50;
+        }
+
+        .asset-progress {
+            width: 100%;
+            height: 27px;
+            display: block;
+            object-fit: fill;
+            image-rendering: pixelated;
+        }
+
+        .asset-tile {
+            width: 48px;
+            height: 48px;
+            display: block;
+            object-fit: contain;
+            image-rendering: pixelated;
+            flex: 0 0 auto;
+        }
+
+        .asset-filter {
+            min-width: 120px;
+            min-height: 44px;
+            background-color: rgba(253, 241, 220, 0.72);
+            background-image: none;
+        }
+
+        .asset-filter-active {
+            background: #fff8e8;
+            color: var(--pixel-text-dark);
+        }
+
+        .sidebar-panel {
+            background-color: var(--pixel-brown-light);
+            background-image:
+                linear-gradient(rgba(255, 210, 126, 0.18) 1px, transparent 1px),
+                linear-gradient(rgba(93, 47, 17, 0.34) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(93, 47, 17, 0.16) 1px, transparent 1px);
+            background-size: 100% 26px, 100% 26px, 34px 100%;
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset 2px 2px 0 #FFF6D8, inset -2px -2px 0 var(--pixel-brown-dark), 4px 4px 0 rgba(93, 47, 17, 0.35);
+        }
+
+        .asset-divider {
+            border: 0;
+            background-image: url('./assets/xinqiao/ui/svg/dotted_divider.svg');
+            background-repeat: repeat-x;
+            background-size: auto 12px;
+            background-position: left bottom;
+        }
+
+        .asset-modal-panel {
+            background-color: var(--pixel-brown-light);
+            background-image:
+                linear-gradient(rgba(255, 210, 126, 0.18) 1px, transparent 1px),
+                linear-gradient(rgba(93, 47, 17, 0.34) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(93, 47, 17, 0.16) 1px, transparent 1px);
+            background-size: 100% 26px, 100% 26px, 34px 100%;
+            border: 4px solid var(--pixel-brown-dark);
+            box-shadow: inset 2px 2px 0 #FFF6D8, inset -2px -2px 0 var(--pixel-brown-dark), 4px 4px 0 rgba(93, 47, 17, 0.35);
+        }
+
+        .time-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
         /* 隐藏滚动条但保留功能 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Vue 过渡 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
     </style>
 </head>
 <body>
-    <!--
-        Frontend framework notes
-        - Current delivery: single-file Vue 3 + Tailwind CSS + Chart.js page for fast collaboration and review.
-        - Page modules: sidebar navigation, top toolbar, dashboard, appointment scheduling, counselor team, client records, appointment modal.
-        - Data layer: mock data is kept in Vue setup() and can later be replaced by REST API calls.
-        - Migration path: split this file into Vue SFC modules under src/views and src/components when the backend is ready.
-    -->
-    <div id="app" class="flex h-screen overflow-hidden">
+    <div id="app" class="flex h-screen bg-pixel-scene overflow-hidden p-[clamp(14px,2vw,34px)]" @click.capture="handleFirstInteraction">
         
-        <!-- 左侧导航栏 -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col transition-all">
-            <div class="h-16 flex items-center px-6 border-b border-slate-100">
-                <svg class="w-6 h-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                </svg>
-                <span class="text-lg font-bold text-slate-800 tracking-wide">心桥心理咨询平台</span>
+        <!-- 左侧导航栏 (像素木板) -->
+        <aside class="w-[clamp(238px,19vw,318px)] sidebar-panel flex flex-col transition-all mr-[clamp(14px,1.5vw,24px)]">
+            <div class="h-[clamp(76px,8vw,112px)] flex items-center px-[clamp(16px,1.8vw,30px)] asset-divider">
+                <img class="asset-img w-[clamp(42px,4vw,62px)] h-[clamp(42px,4vw,62px)] mr-4 shrink-0" :src="assets.icons.logoPeople" alt="">
+                <div class="flex flex-col">
+                    <span class="text-[clamp(24px,2vw,32px)] font-bold tracking-wide text-white whitespace-nowrap">心桥心理</span>
+                    <span class="text-[clamp(14px,1.2vw,18px)] text-[#EFEBE9] whitespace-nowrap">协作管理平台</span>
+                </div>
             </div>
-            <nav class="flex-1 py-6 px-4 space-y-2">
+            <nav class="flex-1 py-[clamp(22px,2.7vw,40px)] px-[clamp(18px,2vw,28px)] space-y-[clamp(16px,2vw,26px)]">
                 <button v-for="nav in navItems" :key="nav.id" @click="currentPage = nav.id" 
-                    :class="['w-full flex items-center px-4 py-3 rounded-xl transition-colors text-sm font-medium', 
-                             currentPage === nav.id ? 'bg-teal-50 text-primary' : 'text-slate-600 hover:bg-slate-50']">
-                    <span class="mr-3" v-html="nav.icon"></span>
+                    :class="['w-full flex items-center px-[clamp(12px,1.3vw,22px)] py-[clamp(12px,1.4vw,20px)] nav-plank transition-colors text-[clamp(17px,1.35vw,24px)] font-bold text-white whitespace-nowrap', 
+                             currentPage === nav.id ? 'nav-plank-active' : 'hover:bg-[#5D4037]/70']">
+                    <img class="asset-img nav-icon mr-[clamp(10px,1.1vw,16px)] shrink-0" :src="nav.icon" alt="">
                     {{ nav.name }}
                 </button>
             </nav>
-            <div class="p-4 text-xs text-slate-400 text-center border-t border-slate-100">
-                心桥心理咨询平台
+            <div class="p-[clamp(18px,2.2vw,32px)] text-[clamp(14px,1.3vw,20px)] text-[#EFEBE9] text-center asset-divider">
+                &copy; 2026 心桥协作系统
             </div>
         </aside>
 
-        <!-- 右侧主体内容 -->
-        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- 顶部区域 -->
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
-                <div class="flex items-center space-x-4">
-                    <h1 class="text-lg font-semibold text-slate-800">心桥心理咨询项目</h1>
-                    <span class="px-2.5 py-1 bg-blue-50 text-blue-600 text-xs rounded-full font-medium border border-blue-100">运行正常</span>
-                    <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full font-medium">学期周期：春季学期</span>
-                </div>
-                <div class="flex items-center space-x-6">
-                    <div class="relative">
-                        <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" v-model="searchQuery" placeholder="搜索来访者、咨询师、主题..." class="pl-9 pr-4 py-2 w-72 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all">
+        <!-- 右侧主体内容 (像素纸张/奶油黄) -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden paper-panel p-[clamp(16px,1.45vw,26px)]">
+            <!-- 顶部区域 (像素看板) -->
+            <header class="h-[clamp(62px,5.2vw,78px)] asset-divider flex items-center justify-between gap-[clamp(10px,1vw,18px)] px-[clamp(8px,1.2vw,20px)] z-10 mb-[clamp(12px,1.2vw,20px)]">
+                <div class="flex items-center gap-[clamp(8px,1vw,18px)] min-w-0">
+                    <h1 class="text-[clamp(24px,2vw,38px)] font-bold whitespace-nowrap">心桥心理咨询项目</h1>
+                    <div class="flex gap-2 shrink-0 text-[clamp(12px,1vw,16px)]">
+                        <span class="pixel-tag bg-[#BBDEFB] text-[#0D47A1]">演示环境</span>
+                        <span class="pixel-tag bg-[#EFEBE9] text-[var(--pixel-text-light)]">2026 春季</span>
                     </div>
-                    <button @click="showModal = true" class="bg-primary hover:bg-primaryHover text-white px-5 py-2 rounded-full text-sm font-medium shadow-sm shadow-teal-200 transition-all flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </div>
+                <div class="flex items-center gap-[clamp(8px,1vw,18px)] shrink-0">
+                    <div class="relative">
+                        <img class="asset-img w-6 h-6 absolute left-3 top-2.5" :src="assets.icons.search" alt="">
+                        <input type="text" v-model="searchQuery" placeholder="搜索来访者、咨询师、诉求..." class="w-[clamp(180px,18vw,330px)] pixel-input pl-11 focus:outline-none focus:ring-0">
+                    </div>
+                    <button data-audio-toggle @click.stop="toggleMusic" class="hidden pixel-btn pixel-btn-secondary text-sm items-center">
+                        <svg class="w-4 h-4 mr-2 pixel-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path v-if="isMusicOn" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l10-2v13M9 19c0 1.1-1.3 2-3 2s-3-.9-3-2 1.3-2 3-2 3 .9 3 2zm10-2c0 1.1-1.3 2-3 2s-3-.9-3-2 1.3-2 3-2 3 .9 3 2z"></path>
+                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l10-2v7M9 19c0 1.1-1.3 2-3 2s-3-.9-3-2 1.3-2 3-2 3 .9 3 2zm11-4l-5 5m0-5 5 5"></path>
+                        </svg>
+                        {{ isMusicOn ? '音乐开' : '音乐待续' }}
+                    </button>
+                    <button @click="showModal = true" class="pixel-btn text-[clamp(14px,1.1vw,19px)] flex items-center whitespace-nowrap">
+                        <img class="asset-img w-7 h-7 mr-2" :src="assets.icons.plus" alt="">
                         安排咨询
                     </button>
                 </div>
             </header>
 
             <!-- 页面内容 -->
-            <div class="flex-1 overflow-y-auto p-8 no-scrollbar relative">
+            <div class="flex-1 overflow-y-auto no-scrollbar relative space-y-[clamp(18px,2vw,32px)]">
                 
                 <!-- 1. 概览大厅 -->
-                <div v-show="currentPage === 'dashboard'" class="space-y-6">
-                    <!-- 欢迎卡片 -->
-                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex justify-between items-center bg-gradient-to-r from-white to-teal-50/50">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800 mb-2">温和待人，清心对己。</h2>
-                            <p class="text-slate-500 text-sm">今日咨询安排已清晰同步。祝您工作顺利。</p>
+                <div v-show="currentPage === 'dashboard'" class="space-y-[clamp(14px,1.35vw,22px)]">
+                    <!-- 欢迎卡片 (像素木框+奶油黄) -->
+                    <div class="pixel-card p-[clamp(14px,1.25vw,20px)] flex justify-between items-center bg-[#FDF1DC]">
+                        <div class="flex items-center gap-[clamp(16px,1.6vw,26px)]">
+                            <div class="pixel-title-icon shrink-0"><img :src="assets.env.house" alt=""></div>
+                            <div>
+                            <h2 class="text-[clamp(25px,2.05vw,36px)] font-bold mb-2 whitespace-nowrap">温和待人，清心对己。</h2>
+                            <p class="text-[clamp(13px,1vw,16px)] text-[var(--pixel-text-light)]">今日咨询安排已清晰同步。祝您工作顺利。</p>
+                            </div>
                         </div>
-                        <div class="flex space-x-6">
+                        <div class="flex gap-[clamp(18px,1.8vw,30px)] border-l-4 border-dashed border-[var(--pixel-brown-dark)] pl-[clamp(18px,1.8vw,30px)] shrink-0">
                             <div class="text-center">
-                                <p class="text-xs text-slate-400 mb-1">值班组</p>
-                                <p class="font-medium text-slate-700">咨询一组</p>
+                                <p class="text-xs text-[var(--pixel-text-light)] mb-1">值班组</p>
+                                <p class="font-bold text-[clamp(15px,1.2vw,20px)]"><img class="inline-icon" :src="assets.icons.team" alt=""> 咨询一组</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-xs text-slate-400 mb-1">关注复核</p>
-                                <p class="font-medium text-amber-600">2 人</p>
+                                <p class="text-xs text-[var(--pixel-text-light)] mb-1">关注复核</p>
+                                <p class="font-bold text-[clamp(15px,1.2vw,20px)] text-[var(--pixel-red)]"><img class="inline-icon" :src="assets.icons.heart" alt=""> 2 人</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-xs text-slate-400 mb-1">数据状态</p>
-                                <p class="font-medium text-emerald-600 flex items-center justify-center">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> 已同步
+                                <p class="text-xs text-[var(--pixel-text-light)] mb-1">数据状态</p>
+                                <p class="font-bold text-[clamp(15px,1.2vw,20px)] text-[#388E3C]"><img class="inline-icon" :src="assets.icons.shield" alt=""> 已同步</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 数据指标 (像素心形卡片) -->
+                    <div class="grid grid-cols-4 gap-[clamp(12px,1.5vw,26px)]">
+                        <div v-for="metric in metrics" :key="metric.title" :class="metric.className || 'pixel-card pixel-stat-card'" class="p-[clamp(12px,1vw,18px)] flex items-center gap-[clamp(10px,1.1vw,18px)] min-h-[clamp(78px,5.8vw,98px)]">
+                            <img class="asset-img metric-icon" :src="metric.icon" alt="">
+                            <div>
+                                <p class="text-[clamp(16px,1.25vw,22px)] font-bold mb-1">{{ metric.title }}</p>
+                                <p class="text-[clamp(28px,2.6vw,42px)] font-bold flex items-baseline" :class="metric.textClass || ''">
+                                    {{ metric.value }}
+                                    <span v-if="metric.unit" class="text-[clamp(14px,1.2vw,20px)] font-normal text-[var(--pixel-text-dark)] ml-3">{{ metric.unit }}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 数据指标 -->
-                    <div class="grid grid-cols-4 gap-6">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                            <p class="text-sm text-slate-500 mb-1">今日预约</p>
-                            <p class="text-3xl font-bold text-slate-800">4 <span class="text-sm font-normal text-slate-400 ml-1">人次</span></p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                            <p class="text-sm text-slate-500 mb-1">静候确认</p>
-                            <p class="text-3xl font-bold text-teal-600">2 <span class="text-sm font-normal text-teal-400 ml-1">人次</span></p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                            <p class="text-sm text-slate-500 mb-1">值班咨询师</p>
-                            <p class="text-3xl font-bold text-slate-800">6 <span class="text-sm font-normal text-slate-400 ml-1">人</span></p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm bg-amber-50/30">
-                            <p class="text-sm text-amber-700 mb-1">重点关注者</p>
-                            <p class="text-3xl font-bold text-amber-600">1 <span class="text-sm font-normal text-amber-400 ml-1">人</span></p>
-                        </div>
-                    </div>
-
-                    <!-- 列表与图表 -->
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">今日待办预约</h3>
-                            <div class="space-y-3">
-                                <div v-for="apt in dashboardAppointments" :key="apt.id" class="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-teal-100 hover:bg-slate-50 transition-colors">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
-                                            {{ apt.client[0] }}
-                                        </div>
+                    <!-- 列表与图表 (像素列表/图表卡片) -->
+                    <div class="grid grid-cols-3 gap-[clamp(16px,2vw,32px)]">
+                        <div class="col-span-2 pixel-card pixel-card-large p-[clamp(14px,1.2vw,20px)] corner-flowers relative">
+                            <h3 class="text-[clamp(24px,1.8vw,30px)] font-bold mb-[clamp(10px,1.1vw,18px)] flex items-center gap-3"><img class="asset-img w-10 h-10" :src="assets.icons.clipboard" alt=""> 今日待办预约</h3>
+                            <div class="space-y-0">
+                                <div v-for="apt in dashboardAppointments" :key="apt.id" class="flex items-center justify-between px-[clamp(10px,1.1vw,18px)] py-[clamp(8px,0.9vw,14px)] border-b-2 border-dashed border-[#C58A4B] hover:bg-[#FDF1DC]/70">
+                                    <div class="flex items-center space-x-5">
+                                        <div class="pixel-avatar"><img :src="apt.avatar" alt=""></div>
+                                        <img class="asset-tile" :src="getPersonTile(apt.client, apt.counselor)" :alt="apt.client[0]">
                                         <div>
-                                            <p class="text-sm font-semibold text-slate-800">{{ apt.client }} <span class="text-slate-400 font-normal mx-1">|</span> <span class="text-slate-600">{{ apt.topic }}</span></p>
-                                            <p class="text-xs text-slate-500 mt-0.5">{{ apt.time }} · 咨询师：{{ apt.counselor }}</p>
+                                            <p class="text-xl font-bold">{{ apt.client }} | <span class="font-normal">{{ apt.topic }}</span></p>
+                                            <p class="text-sm text-[var(--pixel-text-light)] mt-1">{{ apt.time }} · 咨询师：{{ apt.counselor }}</p>
                                         </div>
                                     </div>
-                                    <span :class="getStatusClass(apt.status)" class="px-3 py-1 rounded-full text-xs font-medium border">{{ apt.status }}</span>
+                                    <span class="asset-status" :class="getStatusClass(apt.status)">{{ apt.status }}</span>
                                 </div>
                             </div>
+                            <div class="flex items-center justify-center gap-10 pt-4 text-[clamp(22px,2vw,30px)] font-bold">
+                                <button class="pixel-btn pixel-btn-secondary !px-3 !py-1"><img class="asset-img w-9 h-9" :src="assets.icons.arrowLeft" alt="上一页"></button>
+                                <span>1 / 3</span>
+                                <button class="pixel-btn pixel-btn-secondary !px-3 !py-1"><img class="asset-img w-9 h-9" :src="assets.icons.arrowRight" alt="下一页"></button>
+                            </div>
                         </div>
-                        <div class="col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
-                            <h3 class="text-lg font-bold text-slate-800 mb-4">情绪指数波动趋势</h3>
-                            <div class="flex-1 relative w-full h-full min-h-[200px]">
+                        <div class="col-span-1 pixel-card pixel-card-large p-[clamp(14px,1.2vw,20px)] flex flex-col corner-flowers relative">
+                            <h3 class="text-[clamp(22px,1.65vw,29px)] font-bold mb-[clamp(10px,1.1vw,18px)] flex items-center gap-3"><img class="asset-img w-10 h-10" :src="assets.icons.leaf" alt=""> 情绪指数波动趋势</h3>
+                            <div class="flex-1 relative w-full h-full min-h-[220px]">
                                 <canvas id="emotionChart"></canvas>
                             </div>
                         </div>
@@ -167,45 +578,50 @@
                 </div>
 
                 <!-- 2. 预约排期 -->
-                <div v-show="currentPage === 'appointments'" class="space-y-6">
+                <div v-show="currentPage === 'appointments'" class="space-y-8">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-bold text-slate-800">预约排期</h2>
-                        <div class="flex space-x-2 bg-slate-100 p-1 rounded-xl">
+                        <h2 class="text-4xl font-bold flex items-center gap-4"><img class="asset-img section-icon" :src="assets.icons.sectionCalendar" alt=""> 预约排期</h2>
+                        <div class="flex space-x-2 p-1.5 bg-transparent">
                             <button v-for="filter in ['全部', '静候确认', '已排定', '咨询已结束']" :key="filter" @click="aptFilter = filter"
-                                :class="['px-4 py-1.5 text-sm font-medium rounded-lg transition-colors', aptFilter === filter ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700']">
+                                :class="['px-4 py-2 text-sm font-medium pixel-tag asset-filter transition-colors', aptFilter === filter ? 'asset-filter-active' : 'text-[var(--pixel-text-light)] hover:text-[var(--pixel-text-dark)]']">
                                 {{ filter }}
                             </button>
                         </div>
                     </div>
                     
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <table class="w-full text-left border-collapse">
+                    <div class="pixel-card pixel-card-large overflow-hidden corner-flowers relative">
+                        <table class="pixel-table">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                                    <th class="py-4 px-6 font-medium">来访者</th>
-                                    <th class="py-4 px-6 font-medium">咨询师</th>
-                                    <th class="py-4 px-6 font-medium">核心诉求</th>
-                                    <th class="py-4 px-6 font-medium">预约时间</th>
-                                    <th class="py-4 px-6 font-medium">状态</th>
+                                <tr class="text-sm border-b-4 border-dashed border-[var(--pixel-brown-dark)]">
+                                    <th class="font-bold">来访者</th>
+                                    <th class="font-bold">咨询师</th>
+                                    <th class="font-bold">核心诉求</th>
+                                    <th class="font-bold">预约时间</th>
+                                    <th class="font-bold">状态</th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
-                                <tr v-for="apt in filteredAppointments" :key="apt.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <td class="py-4 px-6 font-medium text-slate-800">{{ apt.client }}</td>
-                                    <td class="py-4 px-6 text-slate-600">
+                                <tr v-for="apt in filteredAppointments" :key="apt.id" class="pixel-list-item hover:bg-[#FDF1DC]/70">
+                                    <td class="font-bold">
+                                        <div class="flex items-center gap-4">
+                                            <span class="pixel-avatar"><img :src="apt.avatar" alt=""></span>
+                                            {{ apt.client }}
+                                        </div>
+                                    </td>
+                                    <td class="text-[var(--pixel-text-dark)]">
                                         <div class="flex items-center">
-                                            <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs mr-2">{{ apt.counselor[0] }}</div>
+                                            <img class="asset-tile mr-3" :src="getPersonTile(apt.client, apt.counselor)" :alt="apt.counselor[0]">
                                             {{ apt.counselor }}
                                         </div>
                                     </td>
-                                    <td class="py-4 px-6 text-slate-600">{{ apt.topic }}</td>
-                                    <td class="py-4 px-6 text-slate-600">{{ apt.time }}</td>
-                                    <td class="py-4 px-6">
-                                        <span :class="getStatusClass(apt.status)" class="px-2.5 py-1 rounded-md text-xs font-medium border">{{ apt.status }}</span>
+                                    <td>{{ apt.topic }}</td>
+                                    <td><span class="time-cell"><img class="asset-img w-7 h-7" :src="assets.icons.clock" alt="">{{ apt.time }}</span></td>
+                                    <td>
+                                        <span class="asset-status" :class="getStatusClass(apt.status)">{{ apt.status }}</span>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredAppointments.length === 0">
-                                    <td colspan="5" class="py-12 text-center text-slate-400">暂无符合条件的排期记录</td>
+                                    <td colspan="5" class="py-16 text-center text-[var(--pixel-text-light)]">暂无符合条件的排期记录</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -213,64 +629,62 @@
                 </div>
 
                 <!-- 3. 咨询师团队 -->
-                <div v-show="currentPage === 'counselors'" class="space-y-6">
-                    <h2 class="text-2xl font-bold text-slate-800">咨询师团队</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div v-for="counselor in filteredCounselors" :key="counselor.name" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-primary text-white flex items-center justify-center text-xl font-bold shadow-inner">
-                                        {{ counselor.name[0] }}
-                                    </div>
+                <div v-show="currentPage === 'counselors'" class="space-y-8">
+                    <h2 class="text-4xl font-bold flex items-center gap-4"><img class="asset-img section-icon" :src="assets.icons.sectionTeam" alt=""> 咨询师团队</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div v-for="counselor in filteredCounselors" :key="counselor.name" class="pixel-card p-6 shadow-md hover:shadow-xl transition-shadow">
+                            <div class="flex items-start justify-between mb-5">
+                                <div class="flex items-center space-x-4">
+                                    <div class="pixel-avatar pixel-avatar-lg"><img :src="counselor.avatar" alt=""></div>
                                     <div>
-                                        <h3 class="font-bold text-slate-800 text-lg">{{ counselor.name }}</h3>
-                                        <p class="text-xs text-slate-500 mt-0.5">{{ counselor.title }}</p>
+                                        <h3 class="text-xl font-bold">{{ counselor.name }}</h3>
+                                        <p class="text-xs text-[var(--pixel-text-light)] mt-1">{{ counselor.title }}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="mb-5">
-                                <p class="text-xs text-slate-400 mb-1">擅长方向</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span v-for="tag in counselor.specialties" :key="tag" class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">{{ tag }}</span>
+                            <div class="mb-6">
+                                <p class="text-xs text-[var(--pixel-text-light)] mb-1.5 border-b border-dashed border-[var(--pixel-brown-dark)] pb-1">擅长方向</p>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <span v-for="tag in counselor.specialties" :key="tag" class="asset-skill">{{ tag }}</span>
                                 </div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-slate-500">当前负载</span>
-                                    <span class="font-medium text-slate-700">{{ counselor.load }}%</span>
+                                <div class="flex justify-between text-xs mb-1.5 border-b border-dashed border-[var(--pixel-brown-dark)] pb-1">
+                                    <span class="text-[var(--pixel-text-light)]">当前负载</span>
+                                    <span class="font-bold">{{ counselor.load }}%</span>
                                 </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5">
-                                    <div :class="['h-1.5 rounded-full', counselor.load > 70 ? 'bg-amber-400' : 'bg-primary']" :style="{ width: counselor.load + '%' }"></div>
-                                </div>
+                                <img class="asset-progress" :src="getProgressAsset(counselor.load)" :alt="`当前负载 ${counselor.load}%`">
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 4. 来访者档案 -->
-                <div v-show="currentPage === 'clients'" class="space-y-6">
-                    <h2 class="text-2xl font-bold text-slate-800">来访者档案</h2>
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <table class="w-full text-left border-collapse">
+                <div v-show="currentPage === 'clients'" class="space-y-8">
+                    <h2 class="text-4xl font-bold flex items-center gap-4"><img class="asset-img section-icon" :src="assets.icons.sectionArchive" alt=""> 来访者档案</h2>
+                    <div class="pixel-card pixel-card-large overflow-hidden corner-flowers relative">
+                        <table class="pixel-table">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                                    <th class="py-4 px-6 font-medium">来访者</th>
-                                    <th class="py-4 px-6 font-medium">咨询主题</th>
-                                    <th class="py-4 px-6 font-medium">评估等级</th>
-                                    <th class="py-4 px-6 font-medium">跟进计划</th>
+                                <tr class="text-sm border-b-4 border-dashed border-[var(--pixel-brown-dark)]">
+                                    <th class="font-bold">来访者</th>
+                                    <th class="font-bold">咨询主题</th>
+                                    <th class="font-bold">评估等级</th>
+                                    <th class="font-bold">跟进计划</th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm">
-                                <tr v-for="client in filteredClients" :key="client.name" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <td class="py-4 px-6 font-medium text-slate-800">{{ client.name }}</td>
-                                    <td class="py-4 px-6 text-slate-600">{{ client.topic }}</td>
-                                    <td class="py-4 px-6">
-                                        <span :class="getLevelClass(client.level)" class="px-2.5 py-1 rounded-md text-xs font-medium border flex inline-flex items-center">
-                                            <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getLevelDotClass(client.level)"></span>
-                                            {{ client.level }}
-                                        </span>
+                                <tr v-for="client in filteredClients" :key="client.name" class="pixel-list-item hover:bg-[#FDF1DC]/70">
+                                    <td class="font-bold">
+                                        <div class="flex items-center gap-4">
+                                            <span class="pixel-avatar"><img :src="client.avatar" alt=""></span>
+                                            {{ client.name }}
+                                        </div>
                                     </td>
-                                    <td class="py-4 px-6 text-slate-600">{{ client.plan }}</td>
+                                    <td class="text-[var(--pixel-text-dark)]">{{ client.topic }}</td>
+                                    <td>
+                                        <span class="asset-status" :class="getLevelClass(client.level)">{{ client.level }}</span>
+                                    </td>
+                                    <td>{{ client.plan }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -280,44 +694,48 @@
             </div>
         </main>
 
-        <!-- 安排咨询 弹窗 -->
+        <!-- 安排咨询 弹窗 (像素木箱) -->
         <transition name="fade">
             <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center">
-                <!-- 背景遮罩 -->
-                <div class="absolute inset-0 bg-slate-800/40 backdrop-blur-sm" @click="showModal = false"></div>
-                <!-- 弹窗内容 -->
-                <div class="bg-white rounded-2xl shadow-xl w-[480px] relative z-10 overflow-hidden flex flex-col">
-                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <h3 class="text-lg font-bold text-slate-800">安排咨询</h3>
-                        <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
+                <!-- 背景遮罩 (像素网格) -->
+                <div class="absolute inset-0 bg-[#3E2723]/60 bg-pixel-grass" @click="showModal = false"></div>
+                <!-- 弹窗内容 (像素木箱) -->
+                <div class="asset-modal-panel w-[500px] relative z-10 overflow-hidden flex flex-col p-6 space-y-6">
+                    <div class="pb-4 asset-divider flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <img class="asset-img w-8 h-8 mr-3" :src="assets.icons.plus" alt="">
+                            安排咨询
+                        </h3>
+                        <button @click="showModal = false" class="text-[#EFEBE9] hover:text-white transition-colors text-xl font-bold">×</button>
                     </div>
-                    <div class="p-6 space-y-4">
+                    <div class="p-4 space-y-5 pixel-card pixel-card-large">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">来访者</label>
-                            <input v-model="form.client" type="text" placeholder="例如：吴同学" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white">
+                            <label class="block text-sm font-bold mb-1.5">来访者</label>
+                            <input v-model="form.client" type="text" placeholder="例如：吴同学" class="w-full pixel-input text-xs focus:outline-none focus:ring-0">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">核心诉求</label>
-                            <input v-model="form.topic" type="text" placeholder="例如：新生适应" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white">
+                            <label class="block text-sm font-bold mb-1.5">核心诉求</label>
+                            <input v-model="form.topic" type="text" placeholder="例如：新生适应" class="w-full pixel-input text-xs focus:outline-none focus:ring-0">
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">选择咨询师</label>
-                                <select v-model="form.counselor" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white">
+                                <label class="block text-sm font-bold mb-1.5">选择咨询师</label>
+                                <select v-model="form.counselor" class="w-full pixel-input text-xs focus:outline-none focus:ring-0 bg-[#EFEBE9]/70">
                                     <option v-for="c in counselors" :key="c.name" :value="c.name">{{ c.name }}</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">预约时间</label>
-                                <input v-model="form.time" type="text" placeholder="例如：明天 10:00" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white">
+                                <label class="block text-sm font-bold mb-1.5">预约时间</label>
+                                <input v-model="form.time" type="text" placeholder="例如：明天 10:00" class="w-full pixel-input text-xs focus:outline-none focus:ring-0">
                             </div>
                         </div>
                     </div>
-                    <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50/50">
-                        <button @click="showModal = false" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors">取消</button>
-                        <button @click="submitAppointment" class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primaryHover rounded-lg transition-colors shadow-sm">排定行程</button>
+                    <div class="pt-4 asset-divider flex justify-end space-x-4">
+                        <button @click="showModal = false" class="pixel-btn pixel-btn-secondary text-sm">取消</button>
+                        <button @click="submitAppointment" class="pixel-btn text-sm flex items-center">
+                            <img class="asset-img w-7 h-7 mr-2" :src="assets.icons.plus" alt="">
+                            排定行程
+                        </button>
                     </div>
                 </div>
             </div>
@@ -326,52 +744,210 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted, watch } = Vue;
+                const { createApp, ref, computed, onMounted, watch } = Vue;
 
         createApp({
             setup() {
-                // Module: navigation state. Later migration target: src/router/index.js + src/layouts/AppLayout.vue.
+                // Audio module: reserved asset slots for background music and click sound.
+                // Put files here later:
+                // - assets/audio/background-music.wav
+                // - assets/audio/click-sound.wav
+                // The page attempts to autoplay the background loop on load. If the browser blocks autoplay,
+                // it will retry on the first user interaction.
+                const isMusicOn = ref(false);
+                const audioAssets = {
+                    background: './assets/audio/background-music.wav',
+                    click: './assets/audio/click-sound.wav'
+                };
+                const backgroundMusic = new Audio();
+                backgroundMusic.loop = true;
+                backgroundMusic.volume = 0.42;
+                const clickSound = new Audio();
+                clickSound.volume = 0.55;
+                let backgroundReady = false;
+                let clickReady = false;
+                let firstInteractionHandled = false;
+
+                const assetExists = async (url) => {
+                    try {
+                        const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+                        return response.ok;
+                    } catch (error) {
+                        return false;
+                    }
+                };
+
+                const prepareAudioAssets = async () => {
+                    backgroundReady = await assetExists(audioAssets.background);
+                    if (backgroundReady) {
+                        backgroundMusic.src = audioAssets.background;
+                    }
+                    clickReady = await assetExists(audioAssets.click);
+                    if (clickReady) {
+                        clickSound.src = audioAssets.click;
+                    }
+                };
+
+                const startMusic = async () => {
+                    if (!backgroundReady) return;
+                    try {
+                        await backgroundMusic.play();
+                        isMusicOn.value = true;
+                    } catch (error) {
+                        isMusicOn.value = false;
+                    }
+                };
+
+                const stopMusic = () => {
+                    backgroundMusic.pause();
+                    isMusicOn.value = false;
+                };
+
+                const toggleMusic = async () => {
+                    if (isMusicOn.value) stopMusic();
+                    else await startMusic();
+                };
+
+                const playUiClick = () => {
+                    if (!clickReady) return;
+                    clickSound.currentTime = 0;
+                    clickSound.play().catch(() => {});
+                };
+
+                const handleFirstInteraction = async (event) => {
+                    if (event.target.closest('button, select')) {
+                        if (!event.target.closest('[data-audio-toggle]')) {
+                            playUiClick();
+                        }
+                    }
+                    if (!firstInteractionHandled) {
+                        firstInteractionHandled = true;
+                        await startMusic();
+                    }
+                };
+
+                const assets = {
+                    icons: {
+                        logoPeople: './assets/xinqiao/icons/png/logo_people.png',
+                        overview: './assets/xinqiao/icons/png/overview_grid.png',
+                        calendar: './assets/xinqiao/icons/png/calendar.png',
+                        team: './assets/xinqiao/icons/png/team.png',
+                        archive: './assets/xinqiao/icons/png/archive_file.png',
+                        search: './assets/xinqiao/icons/png/search.png',
+                        clock: './assets/xinqiao/icons/png/clock.png',
+                        clipboard: './assets/xinqiao/icons/png/clipboard.png',
+                        leaf: './assets/xinqiao/icons/png/leaf.png',
+                        heart: './assets/xinqiao/icons/png/heart.png',
+                        shield: './assets/xinqiao/icons/png/shield_check.png',
+                        hourglass: './assets/xinqiao/icons/png/hourglass.png',
+                        star: './assets/xinqiao/icons/png/star.png',
+                        plus: './assets/xinqiao/icons/png/plus_button.png',
+                        arrowLeft: './assets/xinqiao/icons/png/arrow_left.png',
+                        arrowRight: './assets/xinqiao/icons/png/arrow_right.png',
+                        sectionCalendar: './assets/xinqiao/icons/png/section_calendar.png',
+                        sectionTeam: './assets/xinqiao/icons/png/section_team.png',
+                        sectionArchive: './assets/xinqiao/icons/png/section_archive.png',
+                    },
+                    env: {
+                        house: './assets/xinqiao/env/png/house.png'
+                    },
+                    avatars: {
+                        visitor01: './assets/xinqiao/avatars/png/visitor_01.png',
+                        visitor02: './assets/xinqiao/avatars/png/visitor_02.png',
+                        visitor03: './assets/xinqiao/avatars/png/visitor_03.png',
+                        visitor04: './assets/xinqiao/avatars/png/visitor_04.png',
+                        visitor05: './assets/xinqiao/avatars/png/visitor_05.png',
+                        visitor06: './assets/xinqiao/avatars/png/visitor_06.png',
+                        counselor01: './assets/xinqiao/avatars/png/counselor_01.png',
+                        counselor02: './assets/xinqiao/avatars/png/counselor_02.png',
+                        counselor03: './assets/xinqiao/avatars/png/counselor_03.png',
+                        counselor04: './assets/xinqiao/avatars/png/counselor_04.png',
+                        counselor05: './assets/xinqiao/avatars/png/counselor_05.png',
+                        counselor06: './assets/xinqiao/avatars/png/counselor_06.png',
+                    },
+                    tiles: {
+                        chen: './assets/xinqiao/avatars/png/tile_chen.png',
+                        lin: './assets/xinqiao/avatars/png/tile_lin.png',
+                        xu: './assets/xinqiao/avatars/png/tile_xu.png',
+                        ye: './assets/xinqiao/avatars/png/tile_ye.png',
+                        zhang: './assets/xinqiao/avatars/png/tile_zhang.png',
+                        zhou: './assets/xinqiao/avatars/png/tile_zhou.png',
+                    },
+                    status: {
+                        scheduled: './assets/xinqiao/status/svg/status_scheduled.svg',
+                        pending: './assets/xinqiao/status/svg/status_pending.svg',
+                        finished: './assets/xinqiao/status/svg/status_finished.svg',
+                        riskNormal: './assets/xinqiao/status/svg/risk_normal.svg',
+                        riskFocus: './assets/xinqiao/status/svg/risk_focus.svg',
+                        riskKey: './assets/xinqiao/status/svg/risk_key.svg',
+                        progressLow: './assets/xinqiao/status/svg/progress_low.svg',
+                        progressMid: './assets/xinqiao/status/svg/progress_mid.svg',
+                        progressHigh: './assets/xinqiao/status/svg/progress_high.svg',
+                    },
+                    skills: {
+                        '情绪调节': './assets/xinqiao/status/svg/skill_emotion.svg',
+                        '压力管理': './assets/xinqiao/status/svg/skill_stress.svg',
+                        '学业困扰': './assets/xinqiao/status/svg/skill_study.svg',
+                        '人际关系': './assets/xinqiao/status/svg/skill_relationship.svg',
+                        '风险评估': './assets/xinqiao/status/svg/skill_crisis.svg',
+                        '家庭沟通': './assets/xinqiao/status/svg/skill_relationship.svg',
+                        '自我探索': './assets/xinqiao/status/svg/skill_self.svg',
+                        '团体成长': './assets/xinqiao/status/svg/skill_self.svg',
+                        '适应问题': './assets/xinqiao/status/svg/skill_adapt.svg',
+                        '生涯规划': './assets/xinqiao/status/svg/skill_career.svg',
+                        '量表测评': './assets/xinqiao/status/svg/skill_adapt.svg',
+                        '档案追踪': './assets/xinqiao/status/svg/skill_career.svg',
+                    }
+                };
+
+                // 导航配置
                 const currentPage = ref('dashboard');
                 const navItems = [
-                    { id: 'dashboard', name: '概览大厅', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>' },
-                    { id: 'appointments', name: '预约排期', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>' },
-                    { id: 'counselors', name: '咨询师团队', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>' },
-                    { id: 'clients', name: '来访者档案', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>' },
+                    { id: 'dashboard', name: '概览大厅', icon: assets.icons.overview },
+                    { id: 'appointments', name: '预约排期', icon: assets.icons.calendar },
+                    { id: 'counselors', name: '咨询师团队', icon: assets.icons.team },
+                    { id: 'clients', name: '来访者档案', icon: assets.icons.archive },
                 ];
 
-                // Module: global search and appointment status filter.
+                // 搜索与过滤
                 const searchQuery = ref('');
                 const aptFilter = ref('全部');
 
-                // Module: temporary frontend data source.
-                // Replace these refs with API calls after backend endpoints are available.
+                // 基础数据源
                 const appointments = ref([
-                    { id: 1, client: '陈同学', counselor: '张明悦', topic: '考试焦虑', time: '今天 10:30', status: '已排定' },
-                    { id: 2, client: '李同学', counselor: '林思远', topic: '宿舍关系', time: '今天 14:00', status: '静候确认' },
-                    { id: 3, client: '王同学', counselor: '周安宁', topic: '情绪低落', time: '今天 16:20', status: '已排定' },
-                    { id: 4, client: '赵同学', counselor: '许知夏', topic: '自我探索', time: '明天 09:30', status: '静候确认' },
-                    { id: 5, client: '孙同学', counselor: '陈沐', topic: '生涯规划', time: '周五 15:00', status: '咨询已结束' },
+                    { id: 1, client: '陈同学', avatar: assets.avatars.visitor01, counselor: '张明悦', topic: '考试焦虑', time: '今天 10:30', status: '已排定' },
+                    { id: 2, client: '李同学', avatar: assets.avatars.visitor02, counselor: '林思远', topic: '宿舍关系', time: '今天 14:00', status: '静候确认' },
+                    { id: 3, client: '王同学', avatar: assets.avatars.visitor03, counselor: '周安宁', topic: '情绪低落', time: '今天 16:20', status: '已排定' },
+                    { id: 4, client: '赵同学', avatar: assets.avatars.visitor04, counselor: '许知夏', topic: '自我探索', time: '明天 09:30', status: '静候确认' },
+                    { id: 5, client: '孙同学', avatar: assets.avatars.visitor05, counselor: '陈沐', topic: '生涯规划', time: '周五 18:00', status: '咨询已结束' },
                 ]);
 
                 const counselors = ref([
-                    { name: '张明悦', title: '国家二级心理咨询师', specialties: ['情绪调节', '压力管理'], load: 68 },
-                    { name: '林思远', title: '心理健康教育教师', specialties: ['学业困扰', '人际关系'], load: 52 },
-                    { name: '周安宁', title: '危机干预专员', specialties: ['风险评估', '家庭沟通'], load: 74 },
-                    { name: '许知夏', title: '团体辅导老师', specialties: ['自我探索', '团体成长'], load: 41 },
-                    { name: '陈沐', title: '实习咨询师督导', specialties: ['适应问题', '生涯规划'], load: 36 },
-                    { name: '叶澄', title: '心理测评管理员', specialties: ['量表测评', '档案追踪'], load: 47 },
+                    { name: '张明悦', avatar: assets.avatars.counselor01, title: '国家二级心理咨询师', specialties: ['情绪调节', '压力管理'], load: 68 },
+                    { name: '林思远', avatar: assets.avatars.counselor02, title: '心理健康教育教师', specialties: ['学业困扰', '人际关系'], load: 52 },
+                    { name: '周安宁', avatar: assets.avatars.counselor03, title: '危机干预专员', specialties: ['风险评估', '家庭沟通'], load: 74 },
+                    { name: '许知夏', avatar: assets.avatars.counselor04, title: '团体辅导老师', specialties: ['自我探索', '适应问题'], load: 48 },
+                    { name: '陈沐', avatar: assets.avatars.counselor05, title: '实习咨询师督导', specialties: ['适应问题', '生涯规划'], load: 42 },
+                    { name: '叶澄', avatar: assets.avatars.counselor06, title: '心理测评管理员', specialties: ['量表测评', '档案追踪'], load: 46 },
                 ]);
 
                 const clients = ref([
-                    { name: '陈同学', topic: '考试焦虑', level: '普通', plan: '2 天后回访' },
-                    { name: '李同学', topic: '人际困扰', level: '普通', plan: '本周团辅' },
-                    { name: '王同学', topic: '情绪低落', level: '重点', plan: '今日复核' },
-                    { name: '赵同学', topic: '自我探索', level: '普通', plan: '预约中' },
-                    { name: '钱同学', topic: '睡眠问题', level: '关注', plan: '3 天后回访' },
+                    { name: '陈同学', avatar: assets.avatars.visitor01, topic: '考试焦虑', level: '普通', plan: '2 天后回访' },
+                    { name: '李同学', avatar: assets.avatars.visitor02, topic: '人际困扰', level: '普通', plan: '本周团辅' },
+                    { name: '王同学', avatar: assets.avatars.visitor03, topic: '情绪低落', level: '重点', plan: '今日复核' },
+                    { name: '赵同学', avatar: assets.avatars.visitor04, topic: '自我探索', level: '普通', plan: '预约中' },
+                    { name: '钱同学', avatar: assets.avatars.visitor06, topic: '睡眠问题', level: '关注', plan: '3 天后回访' },
                 ]);
 
-                // Module: appointment creation workflow.
-                // Later backend endpoint suggestion: POST /api/appointments.
+                // 概览数据
+                const metrics = computed(() => [
+                    { title: '今日预约', icon: assets.icons.calendar, value: appointments.value.filter(a => a.time.includes('今天')).length, unit: '人次', textClass: 'text-[#1E7A32]' },
+                    { title: '静候确认', icon: assets.icons.hourglass, value: appointments.value.filter(a => a.status === '静候确认').length, unit: '人次', className: 'pixel-card pixel-stat-card', textClass: 'text-[#C86A00]' },
+                    { title: '值班咨询师', icon: assets.icons.team, value: Math.ceil(counselors.value.length * 0.6), unit: '人', textClass: 'text-[#1262A8]' },
+                    { title: '重点关注者', icon: assets.icons.star, value: clients.value.filter(c => c.level === '重点').length, unit: '人', className: 'pixel-card pixel-stat-card', textClass: 'text-[var(--pixel-red)]' },
+                ]);
+
+                // 新增预约逻辑
                 const showModal = ref(false);
                 const form = ref({ client: '', topic: '', counselor: counselors.value[0].name, time: '' });
                 const submitAppointment = () => {
@@ -379,6 +955,7 @@
                     appointments.value.unshift({
                         id: Date.now(),
                         client: form.value.client,
+                        avatar: assets.avatars.visitor01,
                         topic: form.value.topic,
                         counselor: form.value.counselor,
                         time: form.value.time,
@@ -388,9 +965,9 @@
                     form.value = { client: '', topic: '', counselor: counselors.value[0].name, time: '' };
                 };
 
-                // Module: derived view data.
+                // 计算属性
                 const dashboardAppointments = computed(() => {
-                    return appointments.value.filter(a => a.time.includes('今天') || a.time.includes('明天')).slice(0, 4);
+                    return appointments.value.filter(a => a.time.includes('今天') || a.time.includes('明天')).slice(0, 3);
                 });
 
                 const filteredAppointments = computed(() => {
@@ -417,36 +994,77 @@
                     return clients.value.filter(c => c.name.includes(q) || c.topic.includes(q));
                 });
 
-                // Module: status presentation helpers.
+                // 样式辅助函数
                 const getStatusClass = (status) => {
                     switch(status) {
-                        case '静候确认': return 'bg-amber-50 text-amber-600 border-amber-200';
-                        case '已排定': return 'bg-teal-50 text-primary border-teal-200';
-                        case '咨询已结束': return 'bg-slate-50 text-slate-500 border-slate-200';
-                        default: return 'bg-slate-50 text-slate-600 border-slate-200';
+                        case '静候确认': return 'status-pending';
+                        case '已排定': return 'status-scheduled';
+                        case '咨询已结束': return 'status-finished';
+                        default: return 'status-finished';
                     }
+                };
+
+                const getStatusAsset = (status) => {
+                    switch(status) {
+                        case '静候确认': return assets.status.pending;
+                        case '已排定': return assets.status.scheduled;
+                        case '咨询已结束': return assets.status.finished;
+                        default: return assets.status.pending;
+                    }
+                };
+
+                const getLevelAsset = (level) => {
+                    switch(level) {
+                        case '普通': return assets.status.riskNormal;
+                        case '关注': return assets.status.riskFocus;
+                        case '重点': return assets.status.riskKey;
+                        default: return assets.status.riskNormal;
+                    }
+                };
+
+                const getSkillAsset = (tag) => {
+                    return assets.skills[tag] || assets.skills['自我探索'];
+                };
+
+                const getProgressAsset = (load) => {
+                    if (load >= 70) return assets.status.progressHigh;
+                    if (load >= 55) return assets.status.progressMid;
+                    return assets.status.progressLow;
+                };
+
+                const getPersonTile = (clientName, counselorName) => {
+                    if (counselorName.includes('张')) return assets.tiles.zhang;
+                    if (counselorName.includes('林')) return assets.tiles.lin;
+                    if (counselorName.includes('周')) return assets.tiles.zhou;
+                    if (counselorName.includes('许')) return assets.tiles.xu;
+                    if (counselorName.includes('陈')) return assets.tiles.chen;
+                    if (counselorName.includes('叶')) return assets.tiles.ye;
+                    if (clientName.includes('陈')) return assets.tiles.chen;
+                    return assets.tiles.zhang;
                 };
                 
                 const getLevelClass = (level) => {
                     switch(level) {
-                        case '普通': return 'bg-slate-50 text-slate-600 border-slate-200';
-                        case '关注': return 'bg-amber-50 text-amber-600 border-amber-200';
-                        case '重点': return 'bg-rose-50 text-rose-600 border-rose-200';
-                        default: return 'bg-slate-50 text-slate-600 border-slate-200';
+                        case '普通': return 'level-normal';
+                        case '关注': return 'level-focus';
+                        case '重点': return 'level-key';
+                        default: return 'level-normal';
                     }
                 }
                 const getLevelDotClass = (level) => {
                     switch(level) {
-                        case '普通': return 'bg-slate-400';
-                        case '关注': return 'bg-amber-500';
-                        case '重点': return 'bg-rose-500';
-                        default: return 'bg-slate-400';
+                        case '普通': return 'bg-[var(--pixel-text-light)]';
+                        case '关注': return 'bg-[#FF9800]';
+                        case '重点': return 'bg-[var(--pixel-red)]';
+                        default: return 'bg-[var(--pixel-text-light)]';
                     }
                 }
 
-                // Module: dashboard chart.
-                // Later migration target: src/components/EmotionTrendChart.vue.
-                onMounted(() => {
+                // 渲染图表 (配置为像素化直线图)
+                onMounted(async () => {
+                    await prepareAudioAssets();
+                    await startMusic();
+
                     const ctx = document.getElementById('emotionChart').getContext('2d');
                     new Chart(ctx, {
                         type: 'line',
@@ -455,41 +1073,40 @@
                             datasets: [{
                                 label: '来访者整体情绪平稳度',
                                 data: [65, 72, 68, 79, 85, 82, 88],
-                                borderColor: '#0D9488', // Tailwind Teal-600
-                                backgroundColor: 'rgba(13, 148, 136, 0.1)',
-                                borderWidth: 2,
-                                tension: 0.4,
+                                borderColor: '#8B4513', // 木棕深
+                                backgroundColor: 'rgba(210, 105, 30, 0.15)', // 像素浅棕半透明
+                                borderWidth: 4, // 粗线条
+                                tension: 0, // 直线，无平滑
                                 fill: true,
                                 pointBackgroundColor: '#FFFFFF',
-                                pointBorderColor: '#0D9488',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
+                                pointBorderColor: '#8B4513',
+                                pointBorderWidth: 3,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            animation: false, // 关闭动画以适应像素风格
                             plugins: {
                                 legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: '#334155',
-                                    padding: 10,
-                                    cornerRadius: 8,
-                                    displayColors: false
-                                }
+                                tooltip: { enabled: false } // 关闭现代提示框
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
                                     max: 100,
-                                    grid: { color: '#F1F5F9', drawBorder: false },
-                                    ticks: { color: '#94A3B8', stepSize: 20 }
+                                    grid: { display: false }, // 关闭网格
+                                    ticks: { color: '#8D6E63', stepSize: 20 }
                                 },
                                 x: {
-                                    grid: { display: false, drawBorder: false },
-                                    ticks: { color: '#94A3B8' }
+                                    grid: { display: false }, // 关闭网格
+                                    ticks: { color: '#8D6E63' }
                                 }
+                            },
+                            elements: {
+                                line: { tension: 0 } // 直线
                             },
                             interaction: {
                                 intersect: false,
@@ -500,11 +1117,12 @@
                 });
 
                 return {
-                    currentPage, navItems, searchQuery, aptFilter,
-                    appointments, counselors, clients,
+                    assets, currentPage, navItems, searchQuery, aptFilter,
+                    appointments, counselors, clients, metrics,
                     dashboardAppointments, filteredAppointments, filteredCounselors, filteredClients,
-                    showModal, form, submitAppointment,
-                    getStatusClass, getLevelClass, getLevelDotClass
+                    showModal, form, submitAppointment, isMusicOn, toggleMusic, handleFirstInteraction,
+                    getStatusClass, getStatusAsset, getLevelClass, getLevelDotClass,
+                    getLevelAsset, getSkillAsset, getProgressAsset, getPersonTile
                 };
             }
         }).mount('#app');

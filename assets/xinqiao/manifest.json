@@ -1,0 +1,1586 @@
+[
+  {
+    "category": "ui",
+    "name": "logo_plaque",
+    "png": "ui/png/logo_plaque.png",
+    "svg": "ui/svg/logo_plaque.svg",
+    "source_box": [
+      35,
+      30,
+      505,
+      220
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "sidebar_panel",
+    "png": "ui/png/sidebar_panel.png",
+    "svg": "ui/svg/sidebar_panel.svg",
+    "source_box": [
+      560,
+      20,
+      785,
+      365
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "main_frame",
+    "png": "ui/png/main_frame.png",
+    "svg": "ui/svg/main_frame.svg",
+    "source_box": [
+      810,
+      20,
+      1635,
+      365
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "menu_inactive",
+    "png": "ui/png/menu_inactive.png",
+    "svg": "ui/svg/menu_inactive.svg",
+    "source_box": [
+      35,
+      245,
+      455,
+      350
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "menu_active",
+    "png": "ui/png/menu_active.png",
+    "svg": "ui/svg/menu_active.svg",
+    "source_box": [
+      35,
+      365,
+      455,
+      475
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "section_title",
+    "png": "ui/png/section_title.png",
+    "svg": "ui/svg/section_title.svg",
+    "source_box": [
+      495,
+      380,
+      980,
+      480
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "search_bar",
+    "png": "ui/png/search_bar.png",
+    "svg": "ui/svg/search_bar.svg",
+    "source_box": [
+      1000,
+      395,
+      1420,
+      470
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "primary_button",
+    "png": "ui/png/primary_button.png",
+    "svg": "ui/svg/primary_button.svg",
+    "source_box": [
+      1420,
+      395,
+      1635,
+      470
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "badge_demo",
+    "png": "ui/png/badge_demo.png",
+    "svg": "ui/svg/badge_demo.svg",
+    "source_box": [
+      40,
+      520,
+      220,
+      610
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "badge_season",
+    "png": "ui/png/badge_season.png",
+    "svg": "ui/svg/badge_season.svg",
+    "source_box": [
+      240,
+      520,
+      450,
+      610
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "filter_tabs_row",
+    "png": "ui/png/filter_tabs_row.png",
+    "svg": "ui/svg/filter_tabs_row.svg",
+    "source_box": [
+      490,
+      510,
+      1210,
+      665
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "pagination_buttons",
+    "png": "ui/png/pagination_buttons.png",
+    "svg": "ui/svg/pagination_buttons.svg",
+    "source_box": [
+      1320,
+      535,
+      1600,
+      655
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "stat_card_small",
+    "png": "ui/png/stat_card_small.png",
+    "svg": "ui/svg/stat_card_small.svg",
+    "source_box": [
+      35,
+      660,
+      245,
+      865
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "card_medium",
+    "png": "ui/png/card_medium.png",
+    "svg": "ui/svg/card_medium.svg",
+    "source_box": [
+      275,
+      660,
+      700,
+      865
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "content_card_large",
+    "png": "ui/png/content_card_large.png",
+    "svg": "ui/svg/content_card_large.svg",
+    "source_box": [
+      705,
+      655,
+      1635,
+      875
+    ]
+  },
+  {
+    "category": "ui",
+    "name": "dotted_divider",
+    "png": "ui/png/dotted_divider.png",
+    "svg": "ui/svg/dotted_divider.svg",
+    "source_box": [
+      35,
+      890,
+      900,
+      930
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "logo_people",
+    "png": "icons/png/logo_people.png",
+    "svg": "icons/svg/logo_people.svg",
+    "source_box": [
+      115,
+      90,
+      255,
+      240
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "overview_grid",
+    "png": "icons/png/overview_grid.png",
+    "svg": "icons/svg/overview_grid.svg",
+    "source_box": [
+      335,
+      90,
+      480,
+      235
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "calendar",
+    "png": "icons/png/calendar.png",
+    "svg": "icons/svg/calendar.svg",
+    "source_box": [
+      555,
+      80,
+      715,
+      240
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "team",
+    "png": "icons/png/team.png",
+    "svg": "icons/svg/team.svg",
+    "source_box": [
+      795,
+      95,
+      935,
+      235
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "archive_file",
+    "png": "icons/png/archive_file.png",
+    "svg": "icons/svg/archive_file.svg",
+    "source_box": [
+      1005,
+      85,
+      1145,
+      235
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "search",
+    "png": "icons/png/search.png",
+    "svg": "icons/svg/search.svg",
+    "source_box": [
+      1210,
+      85,
+      1370,
+      245
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "plus_button",
+    "png": "icons/png/plus_button.png",
+    "svg": "icons/svg/plus_button.svg",
+    "source_box": [
+      1425,
+      85,
+      1575,
+      235
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "clock",
+    "png": "icons/png/clock.png",
+    "svg": "icons/svg/clock.svg",
+    "source_box": [
+      110,
+      285,
+      255,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "clipboard",
+    "png": "icons/png/clipboard.png",
+    "svg": "icons/svg/clipboard.svg",
+    "source_box": [
+      335,
+      285,
+      500,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "leaf",
+    "png": "icons/png/leaf.png",
+    "svg": "icons/svg/leaf.svg",
+    "source_box": [
+      565,
+      285,
+      715,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "heart",
+    "png": "icons/png/heart.png",
+    "svg": "icons/svg/heart.svg",
+    "source_box": [
+      790,
+      285,
+      925,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "shield_check",
+    "png": "icons/png/shield_check.png",
+    "svg": "icons/svg/shield_check.svg",
+    "source_box": [
+      1000,
+      285,
+      1145,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "hourglass",
+    "png": "icons/png/hourglass.png",
+    "svg": "icons/svg/hourglass.svg",
+    "source_box": [
+      1210,
+      285,
+      1355,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "star",
+    "png": "icons/png/star.png",
+    "svg": "icons/svg/star.svg",
+    "source_box": [
+      1410,
+      285,
+      1565,
+      440
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "arrow_down",
+    "png": "icons/png/arrow_down.png",
+    "svg": "icons/svg/arrow_down.svg",
+    "source_box": [
+      120,
+      520,
+      250,
+      650
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "arrow_left",
+    "png": "icons/png/arrow_left.png",
+    "svg": "icons/svg/arrow_left.svg",
+    "source_box": [
+      320,
+      520,
+      455,
+      650
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "arrow_right",
+    "png": "icons/png/arrow_right.png",
+    "svg": "icons/svg/arrow_right.svg",
+    "source_box": [
+      495,
+      520,
+      630,
+      650
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "section_overview",
+    "png": "icons/png/section_overview.png",
+    "svg": "icons/svg/section_overview.svg",
+    "source_box": [
+      720,
+      490,
+      915,
+      675
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "section_calendar",
+    "png": "icons/png/section_calendar.png",
+    "svg": "icons/svg/section_calendar.svg",
+    "source_box": [
+      930,
+      490,
+      1125,
+      675
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "section_team",
+    "png": "icons/png/section_team.png",
+    "svg": "icons/svg/section_team.svg",
+    "source_box": [
+      1140,
+      490,
+      1335,
+      675
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "section_archive",
+    "png": "icons/png/section_archive.png",
+    "svg": "icons/svg/section_archive.svg",
+    "source_box": [
+      1350,
+      490,
+      1550,
+      675
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "dot_brown",
+    "png": "icons/png/dot_brown.png",
+    "svg": "icons/svg/dot_brown.svg",
+    "source_box": [
+      105,
+      715,
+      180,
+      800
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "dot_orange",
+    "png": "icons/png/dot_orange.png",
+    "svg": "icons/svg/dot_orange.svg",
+    "source_box": [
+      230,
+      715,
+      305,
+      800
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "dot_green",
+    "png": "icons/png/dot_green.png",
+    "svg": "icons/svg/dot_green.svg",
+    "source_box": [
+      355,
+      715,
+      430,
+      800
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "dot_red",
+    "png": "icons/png/dot_red.png",
+    "svg": "icons/svg/dot_red.svg",
+    "source_box": [
+      480,
+      715,
+      555,
+      800
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "dot_blue",
+    "png": "icons/png/dot_blue.png",
+    "svg": "icons/svg/dot_blue.svg",
+    "source_box": [
+      605,
+      715,
+      680,
+      800
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "flower_white",
+    "png": "icons/png/flower_white.png",
+    "svg": "icons/svg/flower_white.svg",
+    "source_box": [
+      735,
+      700,
+      875,
+      840
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "flower_blue",
+    "png": "icons/png/flower_blue.png",
+    "svg": "icons/svg/flower_blue.svg",
+    "source_box": [
+      875,
+      700,
+      1010,
+      840
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "flower_pink",
+    "png": "icons/png/flower_pink.png",
+    "svg": "icons/svg/flower_pink.svg",
+    "source_box": [
+      1000,
+      700,
+      1140,
+      840
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "vine_curl",
+    "png": "icons/png/vine_curl.png",
+    "svg": "icons/svg/vine_curl.svg",
+    "source_box": [
+      1140,
+      700,
+      1270,
+      840
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "vine_branch",
+    "png": "icons/png/vine_branch.png",
+    "svg": "icons/svg/vine_branch.svg",
+    "source_box": [
+      1270,
+      700,
+      1410,
+      840
+    ]
+  },
+  {
+    "category": "icons",
+    "name": "post_flower",
+    "png": "icons/png/post_flower.png",
+    "svg": "icons/svg/post_flower.svg",
+    "source_box": [
+      1410,
+      690,
+      1580,
+      850
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_01",
+    "png": "avatars/png/counselor_01.png",
+    "svg": "avatars/svg/counselor_01.svg",
+    "source_box": [
+      65,
+      55,
+      310,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_02",
+    "png": "avatars/png/counselor_02.png",
+    "svg": "avatars/svg/counselor_02.svg",
+    "source_box": [
+      320,
+      55,
+      565,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_03",
+    "png": "avatars/png/counselor_03.png",
+    "svg": "avatars/svg/counselor_03.svg",
+    "source_box": [
+      570,
+      55,
+      820,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_04",
+    "png": "avatars/png/counselor_04.png",
+    "svg": "avatars/svg/counselor_04.svg",
+    "source_box": [
+      825,
+      55,
+      1075,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_05",
+    "png": "avatars/png/counselor_05.png",
+    "svg": "avatars/svg/counselor_05.svg",
+    "source_box": [
+      1080,
+      55,
+      1330,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "counselor_06",
+    "png": "avatars/png/counselor_06.png",
+    "svg": "avatars/svg/counselor_06.svg",
+    "source_box": [
+      1335,
+      55,
+      1590,
+      340
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_01",
+    "png": "avatars/png/visitor_01.png",
+    "svg": "avatars/svg/visitor_01.svg",
+    "source_box": [
+      65,
+      385,
+      225,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_02",
+    "png": "avatars/png/visitor_02.png",
+    "svg": "avatars/svg/visitor_02.svg",
+    "source_box": [
+      245,
+      385,
+      410,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_03",
+    "png": "avatars/png/visitor_03.png",
+    "svg": "avatars/svg/visitor_03.svg",
+    "source_box": [
+      430,
+      385,
+      600,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_04",
+    "png": "avatars/png/visitor_04.png",
+    "svg": "avatars/svg/visitor_04.svg",
+    "source_box": [
+      620,
+      385,
+      790,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_05",
+    "png": "avatars/png/visitor_05.png",
+    "svg": "avatars/svg/visitor_05.svg",
+    "source_box": [
+      810,
+      385,
+      980,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_06",
+    "png": "avatars/png/visitor_06.png",
+    "svg": "avatars/svg/visitor_06.svg",
+    "source_box": [
+      1000,
+      385,
+      1170,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_07",
+    "png": "avatars/png/visitor_07.png",
+    "svg": "avatars/svg/visitor_07.svg",
+    "source_box": [
+      1190,
+      385,
+      1370,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "visitor_08",
+    "png": "avatars/png/visitor_08.png",
+    "svg": "avatars/svg/visitor_08.svg",
+    "source_box": [
+      1390,
+      385,
+      1585,
+      565
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "chibi_01",
+    "png": "avatars/png/chibi_01.png",
+    "svg": "avatars/svg/chibi_01.svg",
+    "source_box": [
+      55,
+      615,
+      190,
+      855
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "chibi_02",
+    "png": "avatars/png/chibi_02.png",
+    "svg": "avatars/svg/chibi_02.svg",
+    "source_box": [
+      195,
+      615,
+      340,
+      855
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "chibi_03",
+    "png": "avatars/png/chibi_03.png",
+    "svg": "avatars/svg/chibi_03.svg",
+    "source_box": [
+      345,
+      615,
+      500,
+      855
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "chibi_04",
+    "png": "avatars/png/chibi_04.png",
+    "svg": "avatars/svg/chibi_04.svg",
+    "source_box": [
+      510,
+      615,
+      665,
+      855
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_zhang",
+    "png": "avatars/png/tile_zhang.png",
+    "svg": "avatars/svg/tile_zhang.svg",
+    "source_box": [
+      760,
+      600,
+      890,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_lin",
+    "png": "avatars/png/tile_lin.png",
+    "svg": "avatars/svg/tile_lin.svg",
+    "source_box": [
+      900,
+      600,
+      1030,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_zhou",
+    "png": "avatars/png/tile_zhou.png",
+    "svg": "avatars/svg/tile_zhou.svg",
+    "source_box": [
+      1040,
+      600,
+      1170,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_chen",
+    "png": "avatars/png/tile_chen.png",
+    "svg": "avatars/svg/tile_chen.svg",
+    "source_box": [
+      1180,
+      600,
+      1310,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_xu",
+    "png": "avatars/png/tile_xu.png",
+    "svg": "avatars/svg/tile_xu.svg",
+    "source_box": [
+      1320,
+      600,
+      1450,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "tile_ye",
+    "png": "avatars/png/tile_ye.png",
+    "svg": "avatars/svg/tile_ye.svg",
+    "source_box": [
+      1460,
+      600,
+      1590,
+      720
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "round_avatar_green",
+    "png": "avatars/png/round_avatar_green.png",
+    "svg": "avatars/svg/round_avatar_green.svg",
+    "source_box": [
+      760,
+      735,
+      970,
+      920
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "round_avatar_blue",
+    "png": "avatars/png/round_avatar_blue.png",
+    "svg": "avatars/svg/round_avatar_blue.svg",
+    "source_box": [
+      970,
+      735,
+      1170,
+      920
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "round_avatar_orange",
+    "png": "avatars/png/round_avatar_orange.png",
+    "svg": "avatars/svg/round_avatar_orange.svg",
+    "source_box": [
+      1170,
+      735,
+      1370,
+      920
+    ]
+  },
+  {
+    "category": "avatars",
+    "name": "round_avatar_pink",
+    "png": "avatars/png/round_avatar_pink.png",
+    "svg": "avatars/svg/round_avatar_pink.svg",
+    "source_box": [
+      1370,
+      735,
+      1595,
+      920
+    ]
+  },
+  {
+    "category": "status",
+    "name": "status_scheduled",
+    "png": "status/png/status_scheduled.png",
+    "svg": "status/svg/status_scheduled.svg",
+    "source_box": [
+      35,
+      100,
+      200,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "status_pending",
+    "png": "status/png/status_pending.png",
+    "svg": "status/svg/status_pending.svg",
+    "source_box": [
+      205,
+      100,
+      385,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "status_finished",
+    "png": "status/png/status_finished.png",
+    "svg": "status/svg/status_finished.svg",
+    "source_box": [
+      390,
+      100,
+      585,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "risk_normal",
+    "png": "status/png/risk_normal.png",
+    "svg": "status/svg/risk_normal.svg",
+    "source_box": [
+      610,
+      100,
+      740,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "risk_focus",
+    "png": "status/png/risk_focus.png",
+    "svg": "status/svg/risk_focus.svg",
+    "source_box": [
+      750,
+      100,
+      865,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "risk_key",
+    "png": "status/png/risk_key.png",
+    "svg": "status/svg/risk_key.svg",
+    "source_box": [
+      875,
+      100,
+      1000,
+      175
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_emotion",
+    "png": "status/png/skill_emotion.png",
+    "svg": "status/svg/skill_emotion.svg",
+    "source_box": [
+      1015,
+      100,
+      1160,
+      165
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_stress",
+    "png": "status/png/skill_stress.png",
+    "svg": "status/svg/skill_stress.svg",
+    "source_box": [
+      1170,
+      100,
+      1310,
+      165
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_study",
+    "png": "status/png/skill_study.png",
+    "svg": "status/svg/skill_study.svg",
+    "source_box": [
+      1320,
+      100,
+      1460,
+      165
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_relationship",
+    "png": "status/png/skill_relationship.png",
+    "svg": "status/svg/skill_relationship.svg",
+    "source_box": [
+      1470,
+      100,
+      1615,
+      165
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_self",
+    "png": "status/png/skill_self.png",
+    "svg": "status/svg/skill_self.svg",
+    "source_box": [
+      1015,
+      170,
+      1160,
+      230
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_career",
+    "png": "status/png/skill_career.png",
+    "svg": "status/svg/skill_career.svg",
+    "source_box": [
+      1170,
+      170,
+      1310,
+      230
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_adapt",
+    "png": "status/png/skill_adapt.png",
+    "svg": "status/svg/skill_adapt.svg",
+    "source_box": [
+      1320,
+      170,
+      1460,
+      230
+    ]
+  },
+  {
+    "category": "status",
+    "name": "skill_crisis",
+    "png": "status/png/skill_crisis.png",
+    "svg": "status/svg/skill_crisis.svg",
+    "source_box": [
+      1470,
+      170,
+      1615,
+      230
+    ]
+  },
+  {
+    "category": "status",
+    "name": "progress_low",
+    "png": "status/png/progress_low.png",
+    "svg": "status/svg/progress_low.svg",
+    "source_box": [
+      175,
+      275,
+      585,
+      330
+    ]
+  },
+  {
+    "category": "status",
+    "name": "progress_mid",
+    "png": "status/png/progress_mid.png",
+    "svg": "status/svg/progress_mid.svg",
+    "source_box": [
+      175,
+      335,
+      585,
+      390
+    ]
+  },
+  {
+    "category": "status",
+    "name": "progress_high",
+    "png": "status/png/progress_high.png",
+    "svg": "status/svg/progress_high.svg",
+    "source_box": [
+      175,
+      395,
+      585,
+      450
+    ]
+  },
+  {
+    "category": "status",
+    "name": "table_header",
+    "png": "status/png/table_header.png",
+    "svg": "status/svg/table_header.svg",
+    "source_box": [
+      605,
+      280,
+      1615,
+      360
+    ]
+  },
+  {
+    "category": "status",
+    "name": "table_row",
+    "png": "status/png/table_row.png",
+    "svg": "status/svg/table_row.svg",
+    "source_box": [
+      605,
+      430,
+      1615,
+      520
+    ]
+  },
+  {
+    "category": "status",
+    "name": "filter_chips",
+    "png": "status/png/filter_chips.png",
+    "svg": "status/svg/filter_chips.svg",
+    "source_box": [
+      35,
+      520,
+      585,
+      610
+    ]
+  },
+  {
+    "category": "status",
+    "name": "pager",
+    "png": "status/png/pager.png",
+    "svg": "status/svg/pager.svg",
+    "source_box": [
+      590,
+      520,
+      735,
+      610
+    ]
+  },
+  {
+    "category": "status",
+    "name": "stat_today",
+    "png": "status/png/stat_today.png",
+    "svg": "status/svg/stat_today.svg",
+    "source_box": [
+      35,
+      685,
+      200,
+      875
+    ]
+  },
+  {
+    "category": "status",
+    "name": "stat_pending",
+    "png": "status/png/stat_pending.png",
+    "svg": "status/svg/stat_pending.svg",
+    "source_box": [
+      205,
+      685,
+      370,
+      875
+    ]
+  },
+  {
+    "category": "status",
+    "name": "stat_counselor",
+    "png": "status/png/stat_counselor.png",
+    "svg": "status/svg/stat_counselor.svg",
+    "source_box": [
+      380,
+      685,
+      545,
+      875
+    ]
+  },
+  {
+    "category": "status",
+    "name": "stat_focus",
+    "png": "status/png/stat_focus.png",
+    "svg": "status/svg/stat_focus.svg",
+    "source_box": [
+      555,
+      685,
+      725,
+      875
+    ]
+  },
+  {
+    "category": "status",
+    "name": "card_header_cream",
+    "png": "status/png/card_header_cream.png",
+    "svg": "status/svg/card_header_cream.svg",
+    "source_box": [
+      780,
+      645,
+      1610,
+      710
+    ]
+  },
+  {
+    "category": "status",
+    "name": "card_header_gray",
+    "png": "status/png/card_header_gray.png",
+    "svg": "status/svg/card_header_gray.svg",
+    "source_box": [
+      780,
+      720,
+      1610,
+      785
+    ]
+  },
+  {
+    "category": "status",
+    "name": "card_header_dark",
+    "png": "status/png/card_header_dark.png",
+    "svg": "status/svg/card_header_dark.svg",
+    "source_box": [
+      780,
+      795,
+      1610,
+      865
+    ]
+  },
+  {
+    "category": "env",
+    "name": "house",
+    "png": "env/png/house.png",
+    "svg": "env/svg/house.svg",
+    "source_box": [
+      45,
+      35,
+      500,
+      320
+    ]
+  },
+  {
+    "category": "env",
+    "name": "tree",
+    "png": "env/png/tree.png",
+    "svg": "env/svg/tree.svg",
+    "source_box": [
+      500,
+      35,
+      790,
+      320
+    ]
+  },
+  {
+    "category": "env",
+    "name": "bush_white",
+    "png": "env/png/bush_white.png",
+    "svg": "env/svg/bush_white.svg",
+    "source_box": [
+      805,
+      120,
+      1020,
+      315
+    ]
+  },
+  {
+    "category": "env",
+    "name": "bush_pink",
+    "png": "env/png/bush_pink.png",
+    "svg": "env/svg/bush_pink.svg",
+    "source_box": [
+      1030,
+      95,
+      1245,
+      315
+    ]
+  },
+  {
+    "category": "env",
+    "name": "fence",
+    "png": "env/png/fence.png",
+    "svg": "env/svg/fence.svg",
+    "source_box": [
+      1245,
+      110,
+      1640,
+      315
+    ]
+  },
+  {
+    "category": "env",
+    "name": "flowers_white",
+    "png": "env/png/flowers_white.png",
+    "svg": "env/svg/flowers_white.svg",
+    "source_box": [
+      50,
+      340,
+      250,
+      470
+    ]
+  },
+  {
+    "category": "env",
+    "name": "flowers_blue",
+    "png": "env/png/flowers_blue.png",
+    "svg": "env/svg/flowers_blue.svg",
+    "source_box": [
+      285,
+      340,
+      490,
+      470
+    ]
+  },
+  {
+    "category": "env",
+    "name": "flowers_pink",
+    "png": "env/png/flowers_pink.png",
+    "svg": "env/svg/flowers_pink.svg",
+    "source_box": [
+      525,
+      340,
+      730,
+      470
+    ]
+  },
+  {
+    "category": "env",
+    "name": "flowers_mix",
+    "png": "env/png/flowers_mix.png",
+    "svg": "env/svg/flowers_mix.svg",
+    "source_box": [
+      765,
+      340,
+      985,
+      470
+    ]
+  },
+  {
+    "category": "env",
+    "name": "grass_tuft",
+    "png": "env/png/grass_tuft.png",
+    "svg": "env/svg/grass_tuft.svg",
+    "source_box": [
+      1000,
+      340,
+      1210,
+      470
+    ]
+  },
+  {
+    "category": "env",
+    "name": "signpost",
+    "png": "env/png/signpost.png",
+    "svg": "env/svg/signpost.svg",
+    "source_box": [
+      1240,
+      330,
+      1450,
+      500
+    ]
+  },
+  {
+    "category": "env",
+    "name": "post_small",
+    "png": "env/png/post_small.png",
+    "svg": "env/svg/post_small.svg",
+    "source_box": [
+      1425,
+      390,
+      1515,
+      540
+    ]
+  },
+  {
+    "category": "env",
+    "name": "post_tall",
+    "png": "env/png/post_tall.png",
+    "svg": "env/svg/post_tall.svg",
+    "source_box": [
+      1510,
+      360,
+      1635,
+      540
+    ]
+  },
+  {
+    "category": "env",
+    "name": "grass_strip",
+    "png": "env/png/grass_strip.png",
+    "svg": "env/svg/grass_strip.svg",
+    "source_box": [
+      35,
+      490,
+      640,
+      590
+    ]
+  },
+  {
+    "category": "env",
+    "name": "water_strip",
+    "png": "env/png/water_strip.png",
+    "svg": "env/svg/water_strip.svg",
+    "source_box": [
+      655,
+      490,
+      1245,
+      590
+    ]
+  },
+  {
+    "category": "env",
+    "name": "dirt_strip",
+    "png": "env/png/dirt_strip.png",
+    "svg": "env/svg/dirt_strip.svg",
+    "source_box": [
+      35,
+      600,
+      640,
+      700
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_small_1",
+    "png": "env/png/cloud_small_1.png",
+    "svg": "env/svg/cloud_small_1.svg",
+    "source_box": [
+      670,
+      600,
+      790,
+      690
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_small_2",
+    "png": "env/png/cloud_small_2.png",
+    "svg": "env/svg/cloud_small_2.svg",
+    "source_box": [
+      785,
+      600,
+      900,
+      690
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_medium_1",
+    "png": "env/png/cloud_medium_1.png",
+    "svg": "env/svg/cloud_medium_1.svg",
+    "source_box": [
+      890,
+      585,
+      1030,
+      700
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_medium_2",
+    "png": "env/png/cloud_medium_2.png",
+    "svg": "env/svg/cloud_medium_2.svg",
+    "source_box": [
+      1010,
+      575,
+      1165,
+      700
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_large_1",
+    "png": "env/png/cloud_large_1.png",
+    "svg": "env/svg/cloud_large_1.svg",
+    "source_box": [
+      1140,
+      565,
+      1360,
+      700
+    ]
+  },
+  {
+    "category": "env",
+    "name": "cloud_large_2",
+    "png": "env/png/cloud_large_2.png",
+    "svg": "env/svg/cloud_large_2.svg",
+    "source_box": [
+      1340,
+      565,
+      1605,
+      700
+    ]
+  },
+  {
+    "category": "env",
+    "name": "mountain_strip",
+    "png": "env/png/mountain_strip.png",
+    "svg": "env/svg/mountain_strip.svg",
+    "source_box": [
+      125,
+      705,
+      1530,
+      805
+    ]
+  },
+  {
+    "category": "env",
+    "name": "corner_left",
+    "png": "env/png/corner_left.png",
+    "svg": "env/svg/corner_left.svg",
+    "source_box": [
+      25,
+      720,
+      205,
+      920
+    ]
+  },
+  {
+    "category": "env",
+    "name": "corner_right",
+    "png": "env/png/corner_right.png",
+    "svg": "env/svg/corner_right.svg",
+    "source_box": [
+      1510,
+      720,
+      1660,
+      920
+    ]
+  },
+  {
+    "category": "env",
+    "name": "fence_border",
+    "png": "env/png/fence_border.png",
+    "svg": "env/svg/fence_border.svg",
+    "source_box": [
+      230,
+      805,
+      600,
+      920
+    ]
+  },
+  {
+    "category": "env",
+    "name": "rock_border",
+    "png": "env/png/rock_border.png",
+    "svg": "env/svg/rock_border.svg",
+    "source_box": [
+      610,
+      805,
+      1085,
+      920
+    ]
+  },
+  {
+    "category": "env",
+    "name": "planter_border",
+    "png": "env/png/planter_border.png",
+    "svg": "env/svg/planter_border.svg",
+    "source_box": [
+      1110,
+      805,
+      1415,
+      920
+    ]
+  }
+]
