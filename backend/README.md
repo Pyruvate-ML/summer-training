@@ -104,6 +104,8 @@ permissions     当前身份可访问和可管理的功能清单
 GET /api/health
 POST /api/auth/login
 GET /api/me
+GET /api/profile
+PUT /api/profile
 GET /api/appointments
 GET /api/doctors
 GET /api/patients
@@ -137,7 +139,8 @@ curl -u admin:admin123 http://localhost:8080/api/admin/users
 
 ## 数据表
 
-- `app_user`：登录用户、密码和角色。
+- `app_user`：登录用户、BCrypt 密码哈希和角色。
+- `user_profile`：三类身份共用的联系方式、院系、办公室、紧急联系人和备注资料。
 - `doctor`：医生/咨询师资料。
 - `patient`：就诊人员档案。
 - `appointment`：预约排班。
@@ -155,7 +158,7 @@ src/main/resources/data.sql
 - 新增表字段后同步更新 `schema.sql` 和 `data.sql`。
 - 新增接口前先确认前端页面需要的字段，避免返回过多敏感信息。
 - 当前 `ApiController` 是原型写法；接口稳定后建议拆分为 Controller、Service、Repository 和 DTO。
-- 正式项目不要明文保存密码，后续需要替换为 BCrypt 等安全哈希。
+- 当前演示账号已使用 BCrypt 哈希保存，新增账号也必须写入哈希后的密码。
 - 提交前执行：
 
 ```bash

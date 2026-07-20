@@ -9,7 +9,7 @@
 1c08285 Merge branch 'main' into day1
 ```
 
-该分支新增了 Spring Boot 后端、H2 数据库、用户/医生/预约等表结构，以及登录、注册、角色判断等后端代码。因为 `main` 当前是前端原型项目，如果直接把后端 Maven 文件放在仓库根目录，会和前端入口、静态资源、文档结构混在一起，所以整合时采用 `backend/` 子目录作为统一后端模块入口。
+该分支最初新增了 Spring Boot 后端、用户/医生/预约等表结构，以及登录、注册、角色判断等后端代码。当前主线已经继续整合 `origin/feature/mysql-vite-frontend`，前端采用 `frontend/` 下的 Vue 3 + Vite 工程，后端采用 `backend/` 下的 Spring Boot + MySQL 模块。
 
 ## 当前整合结果
 
@@ -33,8 +33,9 @@ backend/
 - 使用 Spring Boot Web 暴露 REST API。
 - 使用 Spring Security 提供管理员、医生、就诊人员三类账号。
 - 新增登录接口，前端只提交账号密码，后端按账号识别角色并返回对应工作台配置。
-- 使用 Spring JDBC 直接查询 H2 数据库，减少实训早期的 Mapper 和实体维护成本。
-- 使用 H2 内存库，每次启动自动初始化表结构和演示数据。
+- 使用 Spring JDBC 直接查询 MySQL 数据库，减少实训早期的 Mapper 和实体维护成本。
+- 使用 MySQL 开发库 `xinqiao_counseling`，启动时按配置初始化表结构和演示数据。
+- 登录接口与 HTTP Basic 调试认证都从 MySQL `app_user` 表加载用户，密码保存为 BCrypt 哈希。
 - 保留和前端原型一致的业务字段，包括预约状态、评估等级、跟进计划和既往就诊记录。
 
 ## 技术栈
@@ -43,7 +44,7 @@ backend/
 - Spring Boot 3.3
 - Spring Security
 - Spring JDBC
-- H2 Database
+- MySQL
 - Maven
 
 ## 权限思路
@@ -52,7 +53,6 @@ backend/
 
 - 可以访问 `/api/admin/**`。
 - 可以查看全部预约、来访者档案和既往记录。
-- 可以访问 H2 控制台查看本地数据。
 - 首页显示全局运营卡片，包括预约、咨询师、来访者、系统用户和系统健康。
 - 导航包含概览大厅、预约管理、咨询师管理、来访者档案、咨询记录、系统用户、数据统计。
 
@@ -109,6 +109,8 @@ permissions.canManage[]
 GET /api/health
 POST /api/auth/login
 GET /api/me
+GET /api/profile
+PUT /api/profile
 GET /api/appointments
 GET /api/patients
 GET /api/patients/{patientId}/history
@@ -133,4 +135,4 @@ curl -u patient_chen:patient123 http://localhost:8080/api/visit-records
 2. 后端新增写接口时优先保持小粒度，例如 `POST /api/appointments`、`PUT /api/appointments/{id}/status`。
 3. 如果团队决定采用 JWT，可以参考 `origin/day1` 中登录、注册、拦截器和角色注解的实现，再替换当前 HTTP Basic 原型。
 4. 如果后端表结构变化，同步更新 `backend/src/main/resources/schema.sql`、`data.sql` 和本文档接口说明。
-5. 不提交 `target/`、`.idea/`、H2 文件数据库等本地生成文件。
+5. 不提交 `target/`、`.idea/`、本地数据库导出或个人环境配置文件。

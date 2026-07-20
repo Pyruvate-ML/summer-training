@@ -15,7 +15,7 @@
     <artifactId>counseling-backend</artifactId>
     <version>0.1.0</version>
     <name>counseling-backend</name>
-    <description>MySQL based backend prototype for Xinqiao counseling platform</description>
+    <description>MySQL backed backend for Xinqiao counseling platform</description>
 
     <properties>
         <java.version>17</java.version>

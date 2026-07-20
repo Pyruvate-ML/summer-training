@@ -7,8 +7,10 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,33 +22,76 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api")
 public class ApiController {
     private final JdbcTemplate jdbc;
+    private final PasswordEncoder passwordEncoder;
 
-    public ApiController(JdbcTemplate jdbc) {
+    public ApiController(JdbcTemplate jdbc, PasswordEncoder passwordEncoder) {
         this.jdbc = jdbc;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/auth/login")
     Map<String, Object> login(@RequestBody LoginRequest request) {
-        var user = jdbc.queryForList(
-            """
-            SELECT id, username, display_name, role
-            FROM app_user
-            WHERE username = ? AND password = ? AND enabled = TRUE
-            """,
-            request.username(),
-            request.password()
-        );
-
-        if (user.isEmpty()) {
+        if (request == null || isBlank(request.username()) || isBlank(request.password())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "账号或密码错误");
         }
 
-        return sessionPayload(user.get(0));
+        var users = jdbc.queryForList(
+            """
+            SELECT id, username, display_name, role, password_hash AS passwordHash
+            FROM app_user
+            WHERE username = ? AND enabled = 1
+            """,
+            request.username()
+        );
+
+        if (users.isEmpty() || !passwordEncoder.matches(request.password(), (String) users.get(0).get("passwordHash"))) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "账号或密码错误");
+        }
+
+        var user = users.get(0);
+        user.remove("passwordHash");
+        return sessionPayload(user);
     }
 
     @GetMapping("/me")
     Map<String, Object> me(Authentication auth) {
         return sessionPayload(currentUser(auth));
+    }
+
+    @GetMapping("/profile")
+    Map<String, Object> profile(Authentication auth) {
+        var user = currentUser(auth);
+        return userProfile(user);
+    }
+
+    @PutMapping("/profile")
+    Map<String, Object> updateProfile(Authentication auth, @RequestBody ProfileUpdateRequest request) {
+        var user = currentUser(auth);
+        if (request == null) {
+            request = new ProfileUpdateRequest(null, null, null, null, null, null, null);
+        }
+        jdbc.update("""
+            INSERT INTO user_profile(user_id, phone, email, department, office_location, emergency_contact, preference_note, bio)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              phone = VALUES(phone),
+              email = VALUES(email),
+              department = VALUES(department),
+              office_location = VALUES(office_location),
+              emergency_contact = VALUES(emergency_contact),
+              preference_note = VALUES(preference_note),
+              bio = VALUES(bio)
+            """,
+            user.get("id"),
+            nullIfBlank(request.phone()),
+            nullIfBlank(request.email()),
+            nullIfBlank(request.department()),
+            nullIfBlank(request.officeLocation()),
+            nullIfBlank(request.emergencyContact()),
+            nullIfBlank(request.preferenceNote()),
+            nullIfBlank(request.bio())
+        );
+        return userProfile(user);
     }
 
     @GetMapping("/admin/dashboard")
@@ -99,21 +144,21 @@ public class ApiController {
         String role = (String) user.get("role");
         if ("ADMIN".equals(role)) {
             return jdbc.queryForList("""
-                SELECT id, user_id, name, title, specialties
+                SELECT id, user_id, name, title, specialties, schedule_note
                 FROM doctor
                 ORDER BY id
                 """);
         }
         if ("DOCTOR".equals(role)) {
             return jdbc.queryForList("""
-                SELECT id, user_id, name, title, specialties
+                SELECT id, user_id, name, title, specialties, schedule_note
                 FROM doctor
                 WHERE user_id = ?
                 ORDER BY id
                 """, user.get("id"));
         }
         return jdbc.queryForList("""
-            SELECT DISTINCT d.id, d.user_id, d.name, d.title, d.specialties
+            SELECT DISTINCT d.id, d.user_id, d.name, d.title, d.specialties, d.schedule_note
             FROM doctor d
             JOIN appointment a ON a.doctor_id = d.id
             JOIN patient p ON p.id = a.patient_id
@@ -159,7 +204,7 @@ public class ApiController {
 
     private List<Map<String, Object>> queryAppointments(String whereClause) {
         return jdbc.queryForList("""
-            SELECT a.id, a.topic, a.appointment_time, a.status,
+            SELECT a.id, a.topic, a.appointment_time, a.status, a.location,
                    p.id AS patient_id, p.name AS patient_name,
                    d.id AS doctor_id, d.name AS doctor_name
             FROM appointment a
@@ -187,6 +232,44 @@ public class ApiController {
         return jdbc.queryForMap(
             "SELECT id, username, display_name, role FROM app_user WHERE username = ?",
             auth.getName()
+        );
+    }
+
+    private Map<String, Object> userProfile(Map<String, Object> user) {
+        var profileRows = jdbc.queryForList("""
+            SELECT phone, email, department, office_location AS officeLocation,
+                   emergency_contact AS emergencyContact, preference_note AS preferenceNote, bio
+            FROM user_profile
+            WHERE user_id = ?
+            """, user.get("id"));
+
+        Map<String, Object> roleProfile = Map.of();
+        String role = (String) user.get("role");
+        if ("DOCTOR".equals(role)) {
+            roleProfile = firstOrEmpty(jdbc.queryForList("""
+                SELECT id AS doctorId, name, title, specialties, schedule_note AS scheduleNote
+                FROM doctor
+                WHERE user_id = ?
+                """, user.get("id")));
+        } else if ("PATIENT".equals(role)) {
+            roleProfile = firstOrEmpty(jdbc.queryForList("""
+                SELECT id AS patientId, name, student_no AS studentNo, college, grade,
+                       primary_topic AS primaryTopic, assessment_level AS assessmentLevel, follow_plan AS followPlan
+                FROM patient
+                WHERE user_id = ?
+                """, user.get("id")));
+        }
+
+        return Map.of(
+            "user", Map.of(
+                "id", user.get("id"),
+                "username", user.get("username"),
+                "displayName", user.get("display_name"),
+                "role", role,
+                "roleName", roleName(role)
+            ),
+            "profile", firstOrEmpty(profileRows),
+            "roleProfile", roleProfile
         );
     }
 
@@ -218,6 +301,18 @@ public class ApiController {
 
     private Integer count(String table) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM " + table, Integer.class);
+    }
+
+    private Map<String, Object> firstOrEmpty(List<Map<String, Object>> rows) {
+        return rows.isEmpty() ? Map.of() : rows.get(0);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private String nullIfBlank(String value) {
+        return isBlank(value) ? null : value.trim();
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -411,7 +506,7 @@ public class ApiController {
             ORDER BY a.id
             LIMIT 1
             """, userId);
-        return rows.isEmpty() ? "暂无预约" : (String) rows.get(0).get("appointment_time");
+        return rows.isEmpty() ? "暂无预约" : String.valueOf(rows.get(0).get("appointment_time"));
     }
 
     private String patientFollowPlan(Object userId) {
@@ -429,4 +524,14 @@ public class ApiController {
     }
 
     record LoginRequest(String username, String password) {}
+
+    record ProfileUpdateRequest(
+        String phone,
+        String email,
+        String department,
+        String officeLocation,
+        String emergencyContact,
+        String preferenceNote,
+        String bio
+    ) {}
 }

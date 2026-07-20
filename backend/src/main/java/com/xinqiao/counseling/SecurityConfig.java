@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -53,20 +55,21 @@ public class SecurityConfig {
 
     @Bean
     UserDetailsService users(JdbcTemplate jdbc) {
-        return username -> {
-            var rows = jdbc.queryForList(
-                "SELECT username, password, role, enabled FROM app_user WHERE username = ?",
-                username
-            );
-            if (rows.isEmpty()) {
-                throw new UsernameNotFoundException("User not found: " + username);
-            }
-            var user = rows.get(0);
-            return User.withUsername((String) user.get("username"))
-                .password("{noop}" + user.get("password"))
-                .roles((String) user.get("role"))
-                .disabled(Boolean.FALSE.equals(user.get("enabled")))
-                .build();
-        };
+        return username -> jdbc.query("""
+            SELECT username, password_hash, role, enabled
+            FROM app_user
+            WHERE username = ?
+            """, (rs, rowNum) -> User.withUsername(rs.getString("username"))
+                .password(rs.getString("password_hash"))
+                .roles(rs.getString("role"))
+                .disabled(!rs.getBoolean("enabled"))
+                .build(),
+            username
+        ).stream().findFirst().orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

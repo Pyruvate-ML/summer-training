@@ -39,7 +39,7 @@ GET    /api/statistics/emotion-trend
 
 ## 后端模块边界
 
-- `SecurityConfig`：认证方式、角色访问规则、H2 控制台权限。
+- `SecurityConfig`：认证方式、角色访问规则、跨域配置和数据库用户加载。
 - `ApiController`：当前原型阶段集中放置只读接口，便于团队快速理解接口返回。
 - `schema.sql`：表结构，保持字段含义清楚。
 - `data.sql`：演示账号和业务数据，保证本地启动即可联调。
