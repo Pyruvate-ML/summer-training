@@ -1,8 +1,25 @@
 node_modules/
 dist/
+target/
+backend/target/
 .playwright-cli/
 output/
 .DS_Store
 *.log
 .env
 .env.*
+
+# Java / Spring Boot
+.mvn/wrapper/maven-wrapper.jar
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+.idea/
+*.iws
+*.iml
+*.ipr
+h2data/
