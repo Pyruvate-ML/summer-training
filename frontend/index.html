@@ -1,13 +1,901 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心桥心理咨询平台</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wood-dark: #4c2610;
+            --wood: #8a4b1f;
+            --wood-light: #c27a31;
+            --paper: #fff0cd;
+            --paper-soft: #fff8e7;
+            --ink: #3e2718;
+            --muted: #7b614f;
+            --green: #426d23;
+            --green-light: #dcebb6;
+            --orange: #b96b21;
+            --red: #b23b2e;
+            --blue: #356f90;
+        }
+
+        body, button, input {
+            font-family: 'Pixelify Sans', 'Microsoft YaHei', sans-serif;
+            color: var(--ink);
+            image-rendering: pixelated;
+            letter-spacing: 0;
+        }
+
+        body { margin: 0; background: #8fcf68; }
+
+        .scene {
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(97, 145, 75, 0.08), rgba(70, 42, 21, 0.15)),
+                url('./assets/pixel-farm-background.png') center/cover no-repeat;
+        }
+
+        .wood {
+            background-color: var(--wood);
+            background-image:
+                linear-gradient(rgba(255, 215, 145, .16) 1px, transparent 1px),
+                linear-gradient(rgba(62, 31, 12, .34) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(62, 31, 12, .17) 1px, transparent 1px);
+            background-size: 100% 28px, 100% 28px, 36px 100%;
+            border: 4px solid var(--wood-dark);
+            box-shadow: inset 2px 2px 0 #e1a75a, inset -2px -2px 0 #2b1408, 4px 4px 0 rgba(46, 24, 11, .36);
+        }
+
+        .paper {
+            background:
+                radial-gradient(circle at 18% 8%, rgba(255,255,255,.55), transparent 24%),
+                linear-gradient(rgba(255,255,255,.22), rgba(255,239,202,.22)),
+                var(--paper);
+            border: 4px solid var(--wood-dark);
+            box-shadow: inset 2px 2px 0 #fff9e8, inset -2px -2px 0 #b96b21, 4px 4px 0 rgba(46, 24, 11, .24);
+        }
+
+        .frame {
+            border: 6px solid var(--wood-dark);
+            box-shadow: inset 3px 3px 0 #e5a75a, inset -3px -3px 0 #2b1408;
+        }
+
+        .nav-btn {
+            background: rgba(255, 240, 205, .8);
+            border: 3px solid #b87935;
+            box-shadow: inset 2px 2px 0 #fff8e8, inset -2px -2px 0 rgba(76, 38, 16, .28);
+        }
+
+        .nav-btn.active {
+            background: var(--green);
+            color: #fff7df;
+            border-color: var(--wood-dark);
+            box-shadow: inset 2px 2px 0 #7fa745, inset -2px -2px 0 #203a13, 3px 3px 0 rgba(46, 24, 11, .32);
+        }
+
+        .pixel-btn {
+            background: var(--green);
+            color: #fff8e3;
+            border: 4px solid var(--wood-dark);
+            box-shadow: inset 2px 2px 0 #8db354, inset -2px -2px 0 #243b14, 3px 3px 0 rgba(46, 24, 11, .35);
+            transition: transform .08s ease;
+        }
+
+        .pixel-btn:hover { transform: translateY(1px); filter: brightness(1.04); }
+
+        .pixel-btn.secondary {
+            background: #c78337;
+            box-shadow: inset 2px 2px 0 #edb96c, inset -2px -2px 0 #6c3514, 3px 3px 0 rgba(46, 24, 11, .3);
+        }
+
+        .pixel-input {
+            background: rgba(255, 248, 231, .88);
+            border: 3px solid #ba7b36;
+            box-shadow: inset 2px 2px 0 rgba(76, 38, 16, .2), inset -2px -2px 0 #fffdf1;
+        }
+
+        .tag {
+            border: 2px solid #a76b30;
+            background: #fff6dc;
+            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 rgba(76,38,16,.24);
+        }
+
+        .tag.green { background: #e3f1c5; color: #31571b; border-color: #789a45; }
+        .tag.orange { background: #ffe6bf; color: #9a4f11; border-color: #d09342; }
+        .tag.red { background: #ffe0d9; color: #a72c22; border-color: #d36a59; }
+        .tag.blue { background: #dff0f8; color: #205a78; border-color: #6e9ab0; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 5.2em;
+            min-height: 2.15em;
+            padding: .18em .55em;
+            white-space: nowrap;
+            word-break: keep-all;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .table-cell {
+            vertical-align: middle;
+            line-height: 1.45;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--wood-dark);
+            background: #ffe3ac;
+            box-shadow: inset 2px 2px 0 #fff7dc, inset -2px -2px 0 #b96b21;
+            object-fit: cover;
+        }
+
+        .avatar-lg { width: 76px; height: 76px; }
+        .asset { image-rendering: pixelated; object-fit: contain; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak class="scene p-[clamp(10px,1.4vw,24px)]">
+    <section v-if="!session" class="min-h-[calc(100vh-32px)] frame relative overflow-hidden">
+        <header class="h-[clamp(72px,7vw,108px)] wood border-0 border-b-4 border-[var(--wood-dark)] flex items-center px-[clamp(22px,3vw,58px)] gap-5">
+            <img class="asset w-[clamp(44px,4vw,70px)] h-[clamp(44px,4vw,70px)]" :src="assets.icons.heart" alt="">
+            <h1 class="text-white text-[clamp(30px,3.4vw,58px)] font-bold">心桥心理</h1>
+            <div class="h-10 w-1 bg-[#e0b879]"></div>
+            <p class="text-[#fff4d8] text-[clamp(18px,1.8vw,30px)] font-bold">校园心理咨询协作管理平台</p>
+        </header>
+
+        <div class="min-h-[calc(100vh-140px)] flex items-center justify-center px-5 py-10">
+            <div class="paper w-[min(92vw,650px)] p-[clamp(24px,3vw,46px)]">
+                <div class="text-center mb-8">
+                    <img class="asset mx-auto w-20 h-20 mb-3" :src="assets.icons.heart" alt="">
+                    <h2 class="text-[clamp(42px,4vw,68px)] font-bold">心桥心理</h2>
+                    <p class="text-[clamp(18px,1.5vw,24px)] text-[var(--muted)] mt-2">校园心理咨询协作管理平台</p>
+                </div>
+
+                <form class="space-y-5" @submit.prevent="login">
+                    <label class="block">
+                        <span class="sr-only">账号</span>
+                        <div class="pixel-input h-16 flex items-center px-5 gap-4">
+                            <img class="asset w-8 h-8" :src="assets.icons.user" alt="">
+                            <input v-model.trim="loginForm.username" class="w-full bg-transparent outline-none text-2xl" placeholder="请输入账号" autocomplete="username">
+                        </div>
+                    </label>
+                    <label class="block">
+                        <span class="sr-only">密码</span>
+                        <div class="pixel-input h-16 flex items-center px-5 gap-4">
+                            <img class="asset w-8 h-8" :src="assets.icons.key" alt="">
+                            <input v-model="loginForm.password" :type="showPassword ? 'text' : 'password'" class="w-full bg-transparent outline-none text-2xl" placeholder="请输入密码" autocomplete="current-password">
+                            <button type="button" class="w-16 text-xl text-[var(--muted)] whitespace-nowrap" @click="showPassword = !showPassword">{{ showPassword ? '隐藏' : '查看' }}</button>
+                        </div>
+                    </label>
+
+                    <button class="pixel-btn w-full h-16 text-[clamp(24px,2vw,34px)] font-bold" :disabled="isLoggingIn">
+                        {{ isLoggingIn ? '正在进入...' : '进入心桥' }}
+                    </button>
+                </form>
+
+                <p v-if="loginError" class="mt-4 text-center text-xl text-[var(--red)]">{{ loginError }}</p>
+                <p class="text-center text-xl font-bold mt-6">系统会根据账号自动识别身份</p>
+
+                <div class="mt-6 pt-6 border-t-2 border-dashed border-[#c58a4b] grid gap-3 text-xl text-[var(--muted)]">
+                    <button v-for="account in demoAccounts" :key="account.username" class="flex justify-between items-center text-left hover:text-[var(--ink)]" @click="fillAccount(account)">
+                        <span>{{ account.roleName }}</span>
+                        <span>{{ account.username }} / {{ account.password }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section v-else class="h-[calc(100vh-28px)] frame overflow-hidden flex flex-col bg-[rgba(255,240,205,.82)]">
+        <header class="wood h-[clamp(70px,6vw,96px)] border-0 border-b-4 border-[var(--wood-dark)] flex items-center justify-between px-[clamp(16px,2vw,34px)] shrink-0">
+            <div class="flex items-center gap-4 min-w-0">
+                <img class="asset w-[clamp(42px,4vw,64px)] h-[clamp(42px,4vw,64px)]" :src="assets.icons.heart" alt="">
+                <h1 class="text-white text-[clamp(26px,2.5vw,42px)] font-bold whitespace-nowrap">心桥心理</h1>
+                <div class="hidden md:block h-9 w-1 bg-[#e0b879]"></div>
+                <p class="hidden md:block text-[#fff4d8] text-[clamp(18px,1.6vw,28px)] font-bold truncate">{{ session.workspace.title }}</p>
+            </div>
+            <div class="flex items-center gap-4 shrink-0">
+                <img class="avatar" :src="currentAvatar" alt="">
+                <div class="hidden sm:block text-white">
+                    <p class="text-2xl font-bold leading-none">{{ session.user.displayName }}</p>
+                    <p class="tag green inline-block mt-2 px-2 py-0.5 text-base">{{ session.user.roleName }}</p>
+                </div>
+                <button class="pixel-btn secondary px-5 py-3 text-xl font-bold" @click="logout">退出登录</button>
+            </div>
+        </header>
+
+        <div class="flex min-h-0 flex-1">
+            <aside class="wood w-[clamp(240px,19vw,320px)] border-0 border-r-4 border-[var(--wood-dark)] p-[clamp(14px,1.8vw,26px)] flex flex-col">
+                <nav class="space-y-4">
+                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key">
+                        <img class="asset w-10 h-10 shrink-0" :src="navIcon(item.key)" alt="">
+                        <span class="truncate">{{ item.label }}</span>
+                    </button>
+                </nav>
+                <div class="mt-auto hidden lg:block">
+                    <img class="asset w-full max-h-64 object-contain" :src="assets.env.bench" alt="">
+                </div>
+            </aside>
+
+            <main class="flex-1 overflow-y-auto no-scrollbar p-[clamp(16px,2vw,30px)] pb-20">
+                <section class="paper overflow-hidden mb-5">
+                    <div class="min-h-[clamp(108px,10vw,160px)] bg-[#d9edf5] flex items-center justify-between px-[clamp(18px,2.6vw,44px)] gap-5">
+                        <div>
+                            <div class="flex items-center gap-4">
+                                <img class="asset w-16 h-16" :src="heroIcon" alt="">
+                                <h2 class="text-[clamp(34px,4vw,66px)] font-bold">{{ session.workspace.title }}</h2>
+                                <span v-if="session.user.role === 'PATIENT'" class="tag orange px-3 py-1 text-lg">仅本人可见</span>
+                            </div>
+                            <p class="text-[clamp(17px,1.4vw,24px)] text-[var(--muted)] mt-2">{{ session.workspace.subtitle }}</p>
+                        </div>
+                        <img class="asset hidden lg:block h-32" :src="assets.env.house" alt="">
+                    </div>
+                </section>
+
+                <section v-show="currentPage === 'dashboard'" class="space-y-5">
+                    <div class="grid grid-cols-2 xl:grid-cols-4 gap-5">
+                        <article v-for="card in dashboardCards" :key="card.key" class="paper p-5 min-h-28 flex items-center gap-4">
+                            <img class="asset w-14 h-14 shrink-0" :src="cardIcon(card.key)" alt="">
+                            <div class="min-w-0">
+                                <p class="text-xl font-bold leading-tight">{{ card.label }}</p>
+                                <p class="font-bold text-[var(--green)] leading-tight" :class="cardValueClass(card)">
+                                    {{ card.value }} <span class="text-xl text-[var(--muted)]">{{ card.unit }}</span>
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div v-if="session.user.role === 'ADMIN'" class="grid xl:grid-cols-2 gap-5">
+                        <data-table title="全平台今日预约列表" :rows="appointments" :columns="appointmentColumns" :assets="assets"></data-table>
+                        <data-table title="重点关注来访者列表" :rows="focusPatients" :columns="patientColumns" :assets="assets"></data-table>
+                        <data-table title="值班与排班概览" :rows="doctorRows" :columns="doctorColumns" :assets="assets"></data-table>
+                        <data-table title="系统用户概况" :rows="userRows" :columns="userColumns" :assets="assets"></data-table>
+                    </div>
+
+                    <div v-else-if="session.user.role === 'DOCTOR'" class="grid xl:grid-cols-2 gap-5">
+                        <data-table title="今日预约安排" :rows="doctorAppointments" :columns="appointmentColumns" :assets="assets"></data-table>
+                        <data-table title="我的来访者概览" :rows="doctorPatients" :columns="patientColumns" :assets="assets"></data-table>
+                        <data-table title="待填写咨询记录" :rows="doctorRecords" :columns="recordColumns" :assets="assets"></data-table>
+                        <data-table title="跟进计划 / 下一步建议" :rows="followPlans" :columns="followColumns" :assets="assets"></data-table>
+                    </div>
+
+                    <div v-else class="grid xl:grid-cols-2 gap-5">
+                        <article class="paper p-6">
+                            <h3 class="text-3xl font-bold mb-5 flex items-center gap-3"><img class="asset w-10 h-10" :src="assets.icons.calendar" alt=""> 我的下一次预约详情</h3>
+                            <div class="grid gap-3 text-2xl">
+                                <p>预约时间：05月26日（周一） 14:00 - 15:00</p>
+                                <p>咨询类型：个体咨询（面对面）</p>
+                                <p>咨询地点：心桥心理咨询室 · 咨询室A</p>
+                                <p>预约状态：<span class="tag green px-3 py-1">已确认</span></p>
+                                <p>备注信息：请提前10分钟到达，放心心情，准时参与。</p>
+                            </div>
+                            <div class="mt-6 flex gap-4">
+                                <button class="pixel-btn px-5 py-3 text-xl font-bold">查看预约详情</button>
+                                <button class="pixel-btn secondary px-5 py-3 text-xl font-bold">修改或取消预约</button>
+                            </div>
+                        </article>
+                        <article class="paper p-6">
+                            <h3 class="text-3xl font-bold mb-5 flex items-center gap-3"><img class="asset w-10 h-10" :src="assets.icons.user" alt=""> 我的咨询师信息</h3>
+                            <div class="flex gap-5 items-center">
+                                <img class="avatar avatar-lg" :src="assets.avatars.counselor01" alt="">
+                                <div class="text-xl">
+                                    <p class="text-3xl font-bold">张医生 <span class="tag green px-2 py-1 text-lg">心理咨询师</span></p>
+                                    <p class="mt-2">国家二级心理咨询师</p>
+                                    <p class="mt-2 text-[var(--muted)]">擅长领域：情绪调节、压力管理、人际关系</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex gap-4">
+                                <button class="pixel-btn px-5 py-3 text-xl font-bold">查看详细资料</button>
+                                <button class="pixel-btn secondary px-5 py-3 text-xl font-bold">发送消息</button>
+                            </div>
+                        </article>
+                        <data-table title="最近咨询记录摘要" :rows="patientRecords" :columns="patientRecordColumns" :assets="assets"></data-table>
+                        <article class="paper p-6">
+                            <h3 class="text-3xl font-bold mb-5 flex items-center gap-3"><img class="asset w-10 h-10" :src="assets.icons.leaf" alt=""> 跟进建议 / 今日提醒</h3>
+                            <div class="grid md:grid-cols-2 gap-6 text-xl">
+                                <div>
+                                    <p class="font-bold text-2xl mb-3">今日提醒</p>
+                                    <p>记录情绪日记（10分钟）</p>
+                                    <p>深呼吸练习（5分钟）</p>
+                                    <p>睡前放松（早睡早起）</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-2xl mb-3">下一步要做什么</p>
+                                    <p>准备本次咨询想讨论的话题</p>
+                                    <p>继续练习情绪调节方法</p>
+                                    <p>完成建议的小目标并记录</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section v-show="currentPage !== 'dashboard'" class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[clamp(32px,3vw,52px)] font-bold">{{ currentNavLabel }}</h3>
+                        <button v-if="canShowPrimaryAction" class="pixel-btn px-5 py-3 text-xl font-bold">{{ session.workspace.primaryAction }}</button>
+                    </div>
+
+                    <data-table v-if="currentPage === 'appointments'" title="预约列表" :rows="visibleAppointments" :columns="appointmentColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'patients'" title="来访者档案" :rows="visiblePatients" :columns="patientColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'doctors'" title="咨询师管理" :rows="doctorRows" :columns="doctorColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'visitRecords'" title="咨询记录" :rows="visibleRecords" :columns="recordColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'users'" title="系统用户" :rows="userRows" :columns="userColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'followPlans'" title="跟进计划" :rows="followPlans" :columns="followColumns" :assets="assets"></data-table>
+                    <section v-else-if="currentPage === 'profile'" class="grid xl:grid-cols-3 gap-5">
+                        <article class="paper p-6 xl:col-span-1">
+                            <div class="flex flex-col items-center text-center">
+                                <img class="avatar avatar-lg !w-28 !h-28" :src="currentAvatar" alt="">
+                                <h4 class="text-4xl font-bold mt-4">{{ session.user.displayName }}</h4>
+                                <span class="tag green status-badge mt-3 text-xl">{{ session.user.roleName }}</span>
+                                <p class="text-xl text-[var(--muted)] mt-4">{{ profileSummary }}</p>
+                            </div>
+                            <div class="mt-6 grid gap-3 text-xl">
+                                <div class="flex justify-between border-t-2 border-dashed border-[#c58a4b] pt-3">
+                                    <span class="text-[var(--muted)]">账号</span>
+                                    <span>{{ session.user.username }}</span>
+                                </div>
+                                <div class="flex justify-between border-t-2 border-dashed border-[#c58a4b] pt-3">
+                                    <span class="text-[var(--muted)]">身份</span>
+                                    <span>{{ session.user.roleName }}</span>
+                                </div>
+                                <div class="flex justify-between border-t-2 border-dashed border-[#c58a4b] pt-3">
+                                    <span class="text-[var(--muted)]">资料状态</span>
+                                    <span class="tag green status-badge text-base">已同步</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="paper p-6 xl:col-span-2">
+                            <div class="flex items-center justify-between mb-5">
+                                <h4 class="text-3xl font-bold flex items-center gap-3">
+                                    <img class="asset w-10 h-10" :src="assets.icons.user" alt="">
+                                    个人资料编辑
+                                </h4>
+                                <button class="pixel-btn px-5 py-3 text-xl font-bold">保存资料</button>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-5">
+                                <label v-for="field in profileFields" :key="field.label" class="block">
+                                    <span class="block text-xl font-bold mb-2">{{ field.label }}</span>
+                                    <input class="pixel-input w-full h-14 px-4 text-xl outline-none" :value="field.value">
+                                </label>
+                            </div>
+                            <div class="mt-6">
+                                <p class="text-xl font-bold mb-2">个人说明</p>
+                                <textarea class="pixel-input w-full min-h-28 p-4 text-xl outline-none resize-none" :value="profileNote"></textarea>
+                            </div>
+                        </article>
+
+                        <article class="paper p-6 xl:col-span-3">
+                            <h4 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <img class="asset w-10 h-10" :src="assets.icons.shield" alt="">
+                                可访问功能与隐私说明
+                            </h4>
+                            <div class="grid md:grid-cols-2 gap-5 text-xl">
+                                <div>
+                                    <p class="font-bold text-2xl mb-2">当前可访问</p>
+                                    <div class="flex flex-wrap gap-3">
+                                        <span v-for="item in profileAccess" :key="item" class="tag blue status-badge">{{ item }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-2xl mb-2">资料保护</p>
+                                    <p class="text-[var(--muted)] leading-relaxed">{{ profilePrivacy }}</p>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+                    <article v-else class="paper p-8 text-2xl">
+                        <p>{{ currentNavLabel }}功能已按当前身份开放入口，后续可继续接具体表单和接口。</p>
+                    </article>
+                </section>
+            </main>
+        </div>
+
+        <footer class="wood h-12 border-0 border-t-4 border-[var(--wood-dark)] px-6 flex items-center justify-between gap-4 text-[#fff4d8] text-base shrink-0 overflow-hidden">
+            <span class="truncate">{{ footerTip }}</span>
+            <span class="hidden md:inline shrink-0">心桥心理咨询协作管理平台</span>
+        </footer>
+    </section>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+const assets = {
+    icons: {
+        heart: './assets/xinqiao/icons/png/heart.png',
+        logo: './assets/xinqiao/icons/png/logo_people.png',
+        calendar: './assets/xinqiao/icons/png/calendar.png',
+        clipboard: './assets/xinqiao/icons/png/clipboard.png',
+        team: './assets/xinqiao/icons/png/team.png',
+        archive: './assets/xinqiao/icons/png/archive_file.png',
+        overview: './assets/xinqiao/icons/png/overview_grid.png',
+        shield: './assets/xinqiao/icons/png/shield_check.png',
+        leaf: './assets/xinqiao/icons/png/leaf.png',
+        clock: './assets/xinqiao/icons/png/clock.png',
+        star: './assets/xinqiao/icons/png/star.png',
+        user: './assets/xinqiao/icons/png/team.png',
+        key: './assets/xinqiao/icons/png/shield_check.png',
+        chart: './assets/xinqiao/icons/png/section_overview.png',
+        plus: './assets/xinqiao/icons/png/plus_button.png'
+    },
+    env: {
+        house: './assets/xinqiao/env/png/house.png',
+        bench: './assets/xinqiao/env/png/tree.png'
+    },
+    avatars: {
+        admin: './assets/xinqiao/avatars/png/counselor_06.png',
+        doctor: './assets/xinqiao/avatars/png/counselor_01.png',
+        patient: './assets/xinqiao/avatars/png/visitor_01.png',
+        counselor01: './assets/xinqiao/avatars/png/counselor_01.png',
+        visitor01: './assets/xinqiao/avatars/png/visitor_01.png',
+        visitor02: './assets/xinqiao/avatars/png/visitor_02.png',
+        visitor03: './assets/xinqiao/avatars/png/visitor_03.png',
+        visitor04: './assets/xinqiao/avatars/png/visitor_04.png'
+    }
+};
+
+const fallbackSessions = {
+    admin: {
+        token: 'local-demo-admin',
+        authType: 'local-demo',
+        user: { id: 1, username: 'admin', displayName: '管理员A', role: 'ADMIN', roleName: '管理员' },
+        workspace: { title: '管理员工作台', subtitle: '全局统筹、排班管理、风险关注、用户管理，尽在掌控', primaryAction: '安排咨询' },
+        navigation: [
+            { key: 'dashboard', label: '概览大厅' },
+            { key: 'appointments', label: '预约管理' },
+            { key: 'doctors', label: '咨询师管理' },
+            { key: 'patients', label: '来访者档案' },
+            { key: 'visitRecords', label: '咨询记录' },
+            { key: 'users', label: '系统用户' },
+            { key: 'statistics', label: '数据统计' }
+        ],
+        dashboardCards: [
+            { key: 'todayAppointments', label: '今日预约', value: 28, unit: '人次' },
+            { key: 'pendingAppointments', label: '待确认预约', value: 12, unit: '人次' },
+            { key: 'doctors', label: '值班咨询师', value: 18, unit: '人' },
+            { key: 'patients', label: '重点关注者', value: 7, unit: '人' },
+            { key: 'users', label: '用户总数', value: 362, unit: '人' },
+            { key: 'health', label: '系统健康', value: '正常', unit: '' }
+        ],
+        permissions: { canView: ['allAppointments', 'allDoctors', 'allPatients', 'allVisitRecords', 'users', 'statistics'], canManage: ['appointments', 'doctors', 'patients', 'users'] }
+    },
+    doctor_zhang: {
+        token: 'local-demo-doctor',
+        authType: 'local-demo',
+        user: { id: 2, username: 'doctor_zhang', displayName: '张医生', role: 'DOCTOR', roleName: '医生' },
+        workspace: { title: '医生工作台', subtitle: '您仅能查看分配给您的预约与有咨询关系的来访者', primaryAction: '填写咨询记录' },
+        navigation: [
+            { key: 'dashboard', label: '我的首页' },
+            { key: 'appointments', label: '我的预约' },
+            { key: 'patients', label: '我的来访者' },
+            { key: 'visitRecords', label: '咨询记录' },
+            { key: 'followPlans', label: '跟进计划' },
+            { key: 'profile', label: '个人资料' }
+        ],
+        dashboardCards: [
+            { key: 'myAppointments', label: '今日我的预约', value: 5, unit: '个' },
+            { key: 'pendingRecords', label: '待填写记录', value: 3, unit: '条' },
+            { key: 'focusPatients', label: '重点关注来访者', value: 8, unit: '位' },
+            { key: 'nextFollowUp', label: '下一次跟进', value: '明天 10:00', unit: '' }
+        ],
+        permissions: { canView: ['ownAppointments', 'assignedPatients', 'ownVisitRecords', 'ownProfile'], canManage: ['visitRecords', 'followPlans'] }
+    },
+    patient_chen: {
+        token: 'local-demo-patient',
+        authType: 'local-demo',
+        user: { id: 4, username: 'patient_chen', displayName: '陈同学', role: 'PATIENT', roleName: '就诊人员' },
+        workspace: { title: '我的咨询空间', subtitle: '欢迎回来，我们陪伴你每一步成长', primaryAction: '预约咨询' },
+        navigation: [
+            { key: 'dashboard', label: '我的首页' },
+            { key: 'appointments', label: '我的预约' },
+            { key: 'bookings', label: '预约咨询' },
+            { key: 'visitRecords', label: '我的咨询记录' },
+            { key: 'followPlans', label: '跟进计划' },
+            { key: 'profile', label: '个人资料' }
+        ],
+        dashboardCards: [
+            { key: 'nextAppointment', label: '下一次预约', value: '05月26日', unit: '' },
+            { key: 'doctor', label: '咨询师信息', value: '张医生', unit: '' },
+            { key: 'followPlan', label: '跟进建议', value: '情绪日记', unit: '' },
+            { key: 'records', label: '最近咨询记录', value: 3, unit: '次' }
+        ],
+        permissions: { canView: ['ownAppointments', 'ownProfile', 'ownVisitRecords', 'ownFollowPlans'], canManage: ['bookingRequests', 'ownProfile'] }
+    }
+};
+
+const DataTable = {
+    props: ['title', 'rows', 'columns', 'assets'],
+    template: `
+        <article class="paper overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b-2 border-dashed border-[#c58a4b]">
+                <h3 class="text-2xl font-bold flex items-center gap-2">
+                    <img class="asset w-8 h-8" :src="assets.icons.clipboard" alt="">
+                    {{ title }}
+                </h3>
+                <button class="tag px-3 py-1 text-lg">查看全部</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-[#e7c38b] text-[var(--ink)]">
+                            <th v-for="column in columns" :key="column.key" class="px-4 py-3 text-lg font-bold border-r-2 border-dashed border-[#c58a4b] last:border-r-0">{{ column.label }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(row, index) in rows" :key="index" class="border-t-2 border-dashed border-[#d4a263] hover:bg-[#fff7df]">
+                            <td v-for="column in columns" :key="column.key" class="table-cell px-4 py-3 text-lg border-r-2 border-dashed border-[#d4a263] last:border-r-0" :class="column.type ? 'w-[8.2rem] text-center' : ''">
+                                <span v-if="column.type === 'status'" class="tag status-badge" :class="statusClass(row[column.key])">{{ row[column.key] }}</span>
+                                <span v-else-if="column.type === 'level'" class="tag status-badge" :class="levelClass(row[column.key])">{{ row[column.key] }}</span>
+                                <span v-else>{{ row[column.key] }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    `,
+    methods: {
+        statusClass(status) {
+            if (status === '待确认' || status === '待填写' || status === '待进行') return 'orange';
+            if (status === '已确认' || status === '已完成' || status === '跟进中' || status === '正常') return 'green';
+            return 'blue';
+        },
+        levelClass(level) {
+            if (level === '高' || level === '重点') return 'red';
+            if (level === '中' || level === '关注') return 'orange';
+            return 'green';
+        }
+    }
+};
+
+createApp({
+    components: { DataTable },
+    setup() {
+        const session = ref(JSON.parse(localStorage.getItem('xinqiao-session') || 'null'));
+        const currentPage = ref(session.value?.navigation?.[0]?.key || 'dashboard');
+        const loginForm = ref({ username: 'admin', password: 'admin123' });
+        const showPassword = ref(false);
+        const isLoggingIn = ref(false);
+        const loginError = ref('');
+
+        const demoAccounts = [
+            { roleName: '管理员', username: 'admin', password: 'admin123' },
+            { roleName: '医生', username: 'doctor_zhang', password: 'doctor123' },
+            { roleName: '就诊人员', username: 'patient_chen', password: 'patient123' }
+        ];
+
+        const appointments = ref([
+            { time: '09:00', counselor: '王老师', patient: '陈同学', type: '个体咨询', status: '待确认', place: '咨询室1' },
+            { time: '10:00', counselor: '张医生', patient: '李同学', type: '团体辅导', status: '已确认', place: '咨询室2' },
+            { time: '11:00', counselor: '刘老师', patient: '张明悦', type: '个体咨询', status: '待确认', place: '在线咨询' },
+            { time: '14:00', counselor: '王老师', patient: '赵同学', type: '心理评估', status: '已确认', place: '咨询室3' },
+            { time: '16:30', counselor: '张医生', patient: '王同学', type: '个体咨询', status: '待进行', place: '咨询室1' }
+        ]);
+
+        const patients = ref([
+            { patient: '张明悦', level: '高', tags: '情绪波动 / 自伤风险', lastVisit: '2025-05-20', status: '跟进中' },
+            { patient: '李同学', level: '中', tags: '焦虑倾向 / 学习压力', lastVisit: '2025-05-19', status: '跟进中' },
+            { patient: '赵同学', level: '中', tags: '睡眠问题 / 抑郁倾向', lastVisit: '2025-05-18', status: '观察中' },
+            { patient: '陈同学', level: '低', tags: '适应困难', lastVisit: '2025-05-17', status: '观察中' }
+        ]);
+
+        const doctors = ref([
+            { doctor: '张医生', title: '国家二级心理咨询师', specialty: '情绪调节 / 压力管理', load: '68 场' },
+            { doctor: '林老师', title: '心理健康教育教师', specialty: '学业困扰 / 人际关系', load: '24 场' },
+            { doctor: '刘老师', title: '心理评估老师', specialty: '心理评估 / 档案追踪', load: '15 场' }
+        ]);
+
+        const users = ref([
+            { date: '2025-05-20', name: '赵老师', role: '咨询师', status: '正常' },
+            { date: '2025-05-19', name: '林老师', role: '咨询师', status: '正常' },
+            { date: '2025-05-18', name: '孙同学', role: '来访者', status: '正常' }
+        ]);
+
+        const records = ref([
+            { patient: '张明悦', time: '2024-05-13 14:00', summary: '焦虑情绪评估与放松训练', status: '待填写' },
+            { patient: '李同学', time: '2024-05-10 10:00', summary: '人际冲突与沟通策略探讨', status: '待填写' },
+            { patient: '陈同学', time: '05月12日', summary: '探索压力来源与情绪识别', status: '已完成' }
+        ]);
+
+        const followPlans = ref([
+            { patient: '陈同学', plan: '情绪管理计划', next: '情绪识别练习', time: '明天 10:00' },
+            { patient: '李同学', plan: '人际关系改善计划', next: '沟通情景演练', time: '后天 14:00' },
+            { patient: '张明悦', plan: '焦虑调节计划', next: '暴露练习（轻度）', time: '5月20日 14:00' }
+        ]);
+
+        const columns = {
+            appointment: [
+                { key: 'time', label: '时间' },
+                { key: 'counselor', label: '咨询师' },
+                { key: 'patient', label: '来访者' },
+                { key: 'type', label: '类型' },
+                { key: 'status', label: '状态', type: 'status' },
+                { key: 'place', label: '地点/方式' }
+            ],
+            patient: [
+                { key: 'patient', label: '来访者' },
+                { key: 'level', label: '关注等级', type: 'level' },
+                { key: 'tags', label: '重点标签' },
+                { key: 'lastVisit', label: '最近咨询' },
+                { key: 'status', label: '状态', type: 'status' }
+            ],
+            doctor: [
+                { key: 'doctor', label: '咨询师' },
+                { key: 'title', label: '职称' },
+                { key: 'specialty', label: '擅长方向' },
+                { key: 'load', label: '本周排班' }
+            ],
+            user: [
+                { key: 'date', label: '日期' },
+                { key: 'name', label: '用户' },
+                { key: 'role', label: '身份' },
+                { key: 'status', label: '状态', type: 'status' }
+            ],
+            record: [
+                { key: 'patient', label: '来访者' },
+                { key: 'time', label: '咨询时间' },
+                { key: 'summary', label: '内容摘要' },
+                { key: 'status', label: '状态', type: 'status' }
+            ],
+            follow: [
+                { key: 'patient', label: '来访者' },
+                { key: 'plan', label: '计划' },
+                { key: 'next', label: '下一步' },
+                { key: 'time', label: '时间' }
+            ],
+            patientRecord: [
+                { key: 'time', label: '日期' },
+                { key: 'summary', label: '摘要' },
+                { key: 'counselor', label: '咨询师' },
+                { key: 'feeling', label: '状态' }
+            ]
+        };
+
+        const patientRecords = ref([
+            { time: '05月12日', summary: '探索压力来源与情绪识别', counselor: '张医生', feeling: '积极' },
+            { time: '04月28日', summary: '人际冲突与沟通模式', counselor: '张医生', feeling: '平稳' },
+            { time: '04月14日', summary: '自我认知与成长目标', counselor: '张医生', feeling: '积极' }
+        ]);
+
+        const navItems = computed(() => session.value?.navigation || []);
+        const dashboardCards = computed(() => session.value?.dashboardCards || []);
+        const currentNavLabel = computed(() => navItems.value.find(item => item.key === currentPage.value)?.label || '功能页');
+        const currentAvatar = computed(() => {
+            if (!session.value) return assets.avatars.patient;
+            if (session.value.user.role === 'ADMIN') return assets.avatars.admin;
+            if (session.value.user.role === 'DOCTOR') return assets.avatars.doctor;
+            return assets.avatars.patient;
+        });
+        const heroIcon = computed(() => session.value?.user.role === 'DOCTOR' ? assets.icons.shield : session.value?.user.role === 'PATIENT' ? assets.icons.heart : assets.icons.overview);
+        const footerTip = computed(() => {
+            if (!session.value) return '';
+            if (session.value.user.role === 'ADMIN') return '提示：您可以查看和管理所有预约、来访者、咨询师及系统用户。';
+            if (session.value.user.role === 'DOCTOR') return '温馨提示：您看到的内容均为分配给您或与您有咨询关系的来访者数据。';
+            return '你的所有信息均受严格保护，仅本人可见。若需帮助，请联系咨询师或平台客服。';
+        });
+
+        const appointmentColumns = columns.appointment;
+        const patientColumns = columns.patient;
+        const doctorColumns = columns.doctor;
+        const userColumns = columns.user;
+        const recordColumns = columns.record;
+        const followColumns = columns.follow;
+        const patientRecordColumns = columns.patientRecord;
+
+        const focusPatients = computed(() => patients.value.filter(row => row.level !== '低'));
+        const doctorRows = computed(() => doctors.value);
+        const userRows = computed(() => users.value);
+        const doctorAppointments = computed(() => appointments.value.filter(row => row.counselor === '张医生' || row.counselor === '王老师'));
+        const doctorPatients = computed(() => patients.value.filter(row => ['陈同学', '李同学', '张明悦', '王同学'].includes(row.patient)));
+        const doctorRecords = computed(() => records.value.filter(row => row.status === '待填写'));
+        const visibleAppointments = computed(() => {
+            if (session.value.user.role === 'ADMIN') return appointments.value;
+            if (session.value.user.role === 'DOCTOR') return doctorAppointments.value;
+            return appointments.value.filter(row => row.patient === '陈同学');
+        });
+        const visiblePatients = computed(() => {
+            if (session.value.user.role === 'ADMIN') return patients.value;
+            if (session.value.user.role === 'DOCTOR') return doctorPatients.value;
+            return patients.value.filter(row => row.patient === '陈同学');
+        });
+        const visibleRecords = computed(() => {
+            if (session.value.user.role === 'ADMIN') return records.value;
+            if (session.value.user.role === 'DOCTOR') return records.value.filter(row => row.patient !== '赵同学');
+            return records.value.filter(row => row.patient === '陈同学');
+        });
+        const canShowPrimaryAction = computed(() => ['appointments', 'bookings', 'visitRecords'].includes(currentPage.value));
+        const profileSummary = computed(() => {
+            if (session.value.user.role === 'ADMIN') return '负责平台排班、用户权限、数据概览和风险关注。';
+            if (session.value.user.role === 'DOCTOR') return '负责来访者咨询、记录填写、跟进计划和专业支持。';
+            return '这里保存你的预约信息、咨询偏好和联系资料，仅本人可见。';
+        });
+        const profileFields = computed(() => {
+            if (session.value.user.role === 'ADMIN') {
+                return [
+                    { label: '显示名称', value: session.value.user.displayName },
+                    { label: '工作编号', value: 'ADMIN-2026-001' },
+                    { label: '所属部门', value: '心理中心运营组' },
+                    { label: '联系电话', value: '010-6600-2026' },
+                    { label: '邮箱', value: 'admin@xinqiao.demo' },
+                    { label: '办公地点', value: '心桥心理咨询室 · 管理台' }
+                ];
+            }
+            if (session.value.user.role === 'DOCTOR') {
+                return [
+                    { label: '显示名称', value: session.value.user.displayName },
+                    { label: '职称', value: '国家二级心理咨询师' },
+                    { label: '擅长方向', value: '情绪调节、压力管理、人际关系' },
+                    { label: '可预约时段', value: '周一至周五 09:00-17:00' },
+                    { label: '咨询室', value: '咨询室1 / 在线咨询' },
+                    { label: '联系方式', value: 'doctor_zhang@xinqiao.demo' }
+                ];
+            }
+            return [
+                { label: '显示名称', value: session.value.user.displayName },
+                { label: '学号', value: '2026001' },
+                { label: '学院', value: '信息科学学院' },
+                { label: '年级', value: '2026级' },
+                { label: '紧急联系人', value: '家长 / 13800000000' },
+                { label: '咨询偏好', value: '面对面咨询，下午时段优先' }
+            ];
+        });
+        const profileNote = computed(() => {
+            if (session.value.user.role === 'ADMIN') return '请定期检查重点关注来访者、待确认预约和新增用户申请，确保平台运行稳定。';
+            if (session.value.user.role === 'DOCTOR') return '温和倾听，遵守伦理边界。记录填写建议在咨询结束后当天完成，跟进计划保持清晰可执行。';
+            return '希望通过咨询改善考试焦虑和睡眠节律。遇到压力时会先记录情绪，再按咨询师建议做呼吸练习。';
+        });
+        const profileAccess = computed(() => {
+            if (session.value.user.role === 'ADMIN') return ['全部预约', '咨询师管理', '来访者档案', '系统用户', '数据统计'];
+            if (session.value.user.role === 'DOCTOR') return ['我的预约', '我的来访者', '咨询记录', '跟进计划', '个人资料'];
+            return ['我的预约', '预约咨询', '我的咨询记录', '跟进计划', '个人资料'];
+        });
+        const profilePrivacy = computed(() => {
+            if (session.value.user.role === 'ADMIN') return '管理员可查看平台运营所需数据，但咨询内容应按最小必要原则使用。';
+            if (session.value.user.role === 'DOCTOR') return '医生只能访问分配给自己或与自己存在咨询关系的来访者资料。';
+            return '就诊人员只能看到自己的预约、档案、咨询记录和跟进建议，其他人不可见。';
+        });
+
+        const fillAccount = (account) => {
+            loginForm.value = { username: account.username, password: account.password };
+        };
+
+        const login = async () => {
+            loginError.value = '';
+            isLoggingIn.value = true;
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginForm.value)
+                });
+                if (!response.ok) throw new Error('账号或密码错误');
+                session.value = await response.json();
+            } catch (error) {
+                const fallback = fallbackSessions[loginForm.value.username];
+                if (!fallback || !Object.values(fallbackSessions).some(item => item.user.username === loginForm.value.username)) {
+                    loginError.value = '账号或密码错误';
+                    isLoggingIn.value = false;
+                    return;
+                }
+                const expected = demoAccounts.find(item => item.username === loginForm.value.username);
+                if (expected?.password !== loginForm.value.password) {
+                    loginError.value = '账号或密码错误';
+                    isLoggingIn.value = false;
+                    return;
+                }
+                session.value = fallback;
+                loginError.value = '后端未连接，当前使用本地演示身份数据。';
+            } finally {
+                if (session.value) {
+                    currentPage.value = session.value.navigation[0].key;
+                    localStorage.setItem('xinqiao-session', JSON.stringify(session.value));
+                }
+                isLoggingIn.value = false;
+            }
+        };
+
+        const logout = () => {
+            session.value = null;
+            currentPage.value = 'dashboard';
+            localStorage.removeItem('xinqiao-session');
+        };
+
+        const navIcon = (key) => {
+            const map = {
+                dashboard: assets.icons.overview,
+                appointments: assets.icons.calendar,
+                doctors: assets.icons.team,
+                patients: assets.icons.archive,
+                visitRecords: assets.icons.clipboard,
+                users: assets.icons.user,
+                statistics: assets.icons.chart,
+                followPlans: assets.icons.leaf,
+                profile: assets.icons.user,
+                bookings: assets.icons.plus
+            };
+            return map[key] || assets.icons.clipboard;
+        };
+
+        const cardIcon = (key) => {
+            if (key.includes('Appointment')) return assets.icons.calendar;
+            if (key.includes('Record') || key.includes('records')) return assets.icons.clipboard;
+            if (key.includes('doctor') || key.includes('Doctor')) return assets.icons.user;
+            if (key.includes('health')) return assets.icons.shield;
+            if (key.includes('focus') || key.includes('patient') || key.includes('Patient')) return assets.icons.heart;
+            return assets.icons.star;
+        };
+
+        const cardValueClass = (card) => {
+            const value = String(card.value);
+            if (value.length >= 6) return 'text-[clamp(24px,2vw,34px)] break-words';
+            if (value.length >= 4) return 'text-[clamp(28px,2.4vw,42px)] break-words';
+            return 'text-[clamp(32px,3vw,50px)]';
+        };
+
+        return {
+            assets,
+            session,
+            currentPage,
+            loginForm,
+            showPassword,
+            isLoggingIn,
+            loginError,
+            demoAccounts,
+            navItems,
+            dashboardCards,
+            currentNavLabel,
+            currentAvatar,
+            heroIcon,
+            footerTip,
+            appointments,
+            focusPatients,
+            doctorRows,
+            userRows,
+            doctorAppointments,
+            doctorPatients,
+            doctorRecords,
+            followPlans,
+            patientRecords,
+            visibleAppointments,
+            visiblePatients,
+            visibleRecords,
+            appointmentColumns,
+            patientColumns,
+            doctorColumns,
+            userColumns,
+            recordColumns,
+            followColumns,
+            patientRecordColumns,
+            profileSummary,
+            profileFields,
+            profileNote,
+            profileAccess,
+            profilePrivacy,
+            canShowPrimaryAction,
+            fillAccount,
+            login,
+            logout,
+            navIcon,
+            cardIcon,
+            cardValueClass
+        };
+    }
+}).mount('#app');
+</script>
+</body>
 </html>
