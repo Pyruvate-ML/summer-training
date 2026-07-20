@@ -1,9 +1,9 @@
-INSERT INTO app_user(username, display_name, role) VALUES
-  ('admin', '系统管理员', 'ADMIN'),
-  ('doctor_zhang', '张明悦', 'DOCTOR'),
-  ('doctor_lin', '林思远', 'DOCTOR'),
-  ('patient_chen', '陈同学', 'PATIENT'),
-  ('patient_li', '李同学', 'PATIENT');
+INSERT INTO app_user(username, password, display_name, role) VALUES
+  ('admin', 'admin123', '系统管理员', 'ADMIN'),
+  ('doctor_zhang', 'doctor123', '张明悦', 'DOCTOR'),
+  ('doctor_lin', 'doctor123', '林思远', 'DOCTOR'),
+  ('patient_chen', 'patient123', '陈同学', 'PATIENT'),
+  ('patient_li', 'patient123', '李同学', 'PATIENT');
 
 INSERT INTO doctor(user_id, name, title, specialties) VALUES
   (2, '张明悦', '国家二级心理咨询师', '情绪调节,压力管理'),
