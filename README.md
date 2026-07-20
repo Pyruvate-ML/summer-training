@@ -4,7 +4,7 @@
 
 心桥心理咨询平台是面向校园心理服务场景的协作管理系统，用于统一管理咨询预约、咨询师团队、来访者档案、评估等级和跟进计划。
 
-当前仓库提供前端单页版本，并已整合 Spring Boot + H2 后端原型。前端用于确认页面流程，后端用于验证接口边界、数据库结构和管理员/医生/就诊人员三类角色权限，方便团队后续分模块开发。
+当前仓库已进入前后端分离改造阶段：`frontend/` 提供 Vue 3 + Vite 前端工程，`backend/` 提供 Spring Boot + MySQL 后端原型。根目录 `index.html` 保留为早期静态原型参考。
 
 ## 当前功能
 
@@ -23,47 +23,26 @@
 
 当前版本：
 
-- 前端：Vue 3 CDN、Tailwind CSS CDN、Chart.js CDN，单文件入口为 `index.html`。
-- 后端：Java 17、Spring Boot 3、Spring Security、Spring JDBC、H2 Database，入口位于 `backend/`。
-- 数据库：后端启动时自动执行 `backend/src/main/resources/schema.sql` 和 `backend/src/main/resources/data.sql`。
-- 认证方式：当前原型提供 `POST /api/auth/login` 给前端登录页使用，同时保留 HTTP Basic 便于团队本地调试；后续可替换为 JWT 或 Session。
-- 前端状态：登录页、身份工作台、导航和首页卡片已按后端登录响应渲染；部分列表与个人资料编辑仍是前端原型数据，后续可继续逐页接入接口。
-
-后续建议迁移：
-
-```text
-frontend/
-  src/
-    layouts/AppLayout.vue
-    views/Dashboard.vue
-    views/Appointments.vue
-    views/Counselors.vue
-    views/Clients.vue
-    components/StatusTag.vue
-    components/EmotionTrendChart.vue
-    api/
-    stores/
-backend/
-  src/main/java/...
-sql/
-  schema.sql
-docs/
-  development.md
-  roadmap.md
-```
+- 前端：Vue 3、Vite，入口位于 `frontend/`，像素风素材复制到 `frontend/public/assets/`。
+- 后端：Java 17、Spring Boot 3、Spring Security、Spring JDBC、MySQL，入口位于 `backend/`。
+- 数据库：开发库为 `xinqiao_counseling`，后端启动时自动执行 `backend/src/main/resources/schema.sql` 和 `backend/src/main/resources/data.sql`。
+- 认证方式：登录接口和 HTTP Basic 调试认证统一读取 MySQL `app_user` 表；后续正式版可替换为 JWT 或 Session。
+- 前端状态：登录、角色工作台、导航、首页卡片和主要列表已迁入 Vite 工程；根目录 `index.html` 暂时作为旧原型留存。
 
 ## 运行方式
 
-前端：
+前端工程：
 
 ```bash
-python3 -m http.server 5175
+cd frontend
+npm install
+npm run dev
 ```
 
 访问：
 
 ```text
-http://localhost:5175
+http://127.0.0.1:5173
 ```
 
 后端：
@@ -77,6 +56,19 @@ mvn spring-boot:run
 
 ```text
 http://localhost:8080/api/health
+```
+
+MySQL 开发库：
+
+```text
+Database: xinqiao_counseling
+User: root
+```
+
+本地启动前设置数据库密码环境变量，避免把个人密码提交到仓库：
+
+```powershell
+$env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
 ```
 
 后端接口需要认证，示例：
@@ -108,7 +100,8 @@ curl -u admin:admin123 http://localhost:8080/api/admin/users
 ```text
 .
 ├── index.html          # 当前前端入口，包含 Vue/Tailwind/Chart.js 单页实现
-├── backend/            # Spring Boot + H2 后端原型
+├── frontend/           # Vue 3 + Vite 前端工程
+├── backend/            # Spring Boot + MySQL 后端原型
 ├── favicon.svg         # 浏览器图标
 ├── sql/schema.sql      # 数据库建表与基础数据
 ├── docs/development.md # 协作开发说明
@@ -128,7 +121,7 @@ curl -u admin:admin123 http://localhost:8080/api/admin/users
 
 ## 后续扩展方向
 
-- 将前端静态数据逐步接入后端接口。
+- 继续补全前端 CRUD 表单和接口联调。
 - 将个人资料编辑表单接入后端保存接口。
 - 把 HTTP Basic 替换为团队最终约定的认证方案。
 - 增加咨询记录和跟进记录。
