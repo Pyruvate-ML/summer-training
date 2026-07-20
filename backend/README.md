@@ -1,6 +1,6 @@
 # 心桥心理咨询平台后端原型
 
-当前后端用于实训协作开发，采用 Spring Boot + H2 内存数据库，重点验证三类身份的数据权限，并为前端从静态数据迁移到真实接口提供最小可运行版本。
+当前后端用于实训协作开发，采用 Spring Boot + MySQL，重点验证三类身份的数据权限，并为 Vue 3 + Vite 前端提供最小可运行接口。
 
 ## 技术栈
 
@@ -8,7 +8,7 @@
 - Spring Boot 3
 - Spring Security
 - Spring JDBC
-- H2 Database
+- MySQL
 - Maven
 
 ## 运行
@@ -24,18 +24,17 @@ mvn spring-boot:run
 http://localhost:8080
 ```
 
-H2 控制台：
+MySQL 连接信息：
 
 ```text
-http://localhost:8080/h2-console
+Database: xinqiao_counseling
+User: root
 ```
 
-H2 连接信息：
+本地启动前设置数据库密码环境变量，避免把个人密码提交到仓库：
 
-```text
-JDBC URL: jdbc:h2:mem:xinqiao
-User: sa
-Password: 留空
+```powershell
+$env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
 ```
 
 ## 测试账号
@@ -55,14 +54,14 @@ Password: 留空
 - 可查看所有预约。
 - 可查看所有就诊人员档案。
 - 可查看所有既往就诊单。
-- 可访问 `/api/admin/**` 和 H2 控制台。
+- 可访问 `/api/admin/**`。
 
 医生：
 
 - 只能查看分配给自己的排班。
 - 只能查看与自己有预约关系的病人档案。
 - 只能查看自己负责病人的既往史和就诊单。
-- 不能访问 `/api/admin/**` 和 H2 控制台。
+- 不能访问 `/api/admin/**`。
 
 就诊人员：
 
@@ -97,7 +96,7 @@ permissions     当前身份可访问和可管理的功能清单
 - 登录页不要让用户勾选身份。
 - 登录成功后以 `user.role`、`navigation` 和 `dashboardCards` 渲染首页。
 - 退出登录时清除本地保存的登录响应，回到登录页。
-- 当前 `token` 是原型占位，不用于真实鉴权；继续访问旧接口时可临时使用 HTTP Basic。
+- 当前 `token` 是原型占位，不用于真实鉴权；接口调试和 Vite 前端列表请求暂时使用 HTTP Basic。
 
 ## 接口
 
@@ -114,7 +113,7 @@ GET /api/admin/dashboard
 GET /api/admin/users
 ```
 
-`POST /api/auth/login` 和 `GET /api/health` 不需要认证。其他 `/api/**` 接口当前使用 HTTP Basic 认证。
+`POST /api/auth/login` 和 `GET /api/health` 不需要认证。其他 `/api/**` 接口当前使用 HTTP Basic 认证，认证账号统一读取 MySQL `app_user` 表。
 
 示例：
 
