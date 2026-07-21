@@ -371,6 +371,7 @@ public class ApiController {
                 nav("patients", "来访者档案"),
                 nav("visitRecords", "咨询记录"),
                 nav("users", "系统用户"),
+                nav("messages", "站内信箱"),
                 nav("statistics", "数据统计")
             );
         }
@@ -381,6 +382,7 @@ public class ApiController {
                 nav("patients", "我的来访者"),
                 nav("visitRecords", "咨询记录"),
                 nav("followPlans", "跟进计划"),
+                nav("messages", "站内信箱"),
                 nav("profile", "个人资料")
             );
         }
@@ -390,6 +392,7 @@ public class ApiController {
             nav("bookings", "预约咨询"),
             nav("visitRecords", "我的咨询记录"),
             nav("followPlans", "跟进计划"),
+                nav("messages", "站内信箱"),
             nav("profile", "个人资料")
         );
     }
@@ -402,7 +405,7 @@ public class ApiController {
                 card("doctors", "咨询师", count("doctor"), "人"),
                 card("patients", "来访者", count("patient"), "人"),
                 card("users", "系统用户", count("app_user"), "个"),
-                card("health", "系统健康", "正常", "")
+                card("health", "系统健康", "正常", ""), card("unreadMessages", "未读消息", countUnreadMessages(user.get("id")), "封")
             );
         }
         if ("DOCTOR".equals(role)) {
@@ -411,7 +414,7 @@ public class ApiController {
                 card("myAppointments", "我的预约", countDoctorAppointments(userId), "次"),
                 card("pendingRecords", "待填写记录", countDoctorFinishedAppointments(userId), "条"),
                 card("focusPatients", "重点关注来访者", countDoctorFocusPatients(userId), "人"),
-                card("nextFollowUp", "下一次跟进", "2 天后", "")
+                card("nextFollowUp", "下一次跟进", "2 天后", ""), card("unreadMessages", "未读消息", countUnreadMessages(user.get("id")), "封")
             );
         }
         Object userId = user.get("id");
@@ -419,7 +422,7 @@ public class ApiController {
             card("myAppointments", "我的预约", countPatientAppointments(userId), "次"),
             card("nextAppointment", "下一次预约", nextPatientAppointment(userId), ""),
             card("followPlan", "跟进建议", patientFollowPlan(userId), ""),
-            card("records", "咨询记录", countPatientVisitRecords(userId), "条")
+            card("records", "咨询记录", countPatientVisitRecords(userId), "条"), card("unreadMessages", "未读信件", countUnreadMessages(userId), "封")
         );
     }
 
@@ -534,4 +537,69 @@ public class ApiController {
         String preferenceNote,
         String bio
     ) {}
+
+    // ==== 站内信功能追加 ====
+    @GetMapping("/messages")
+    List<Map<String, Object>> messages(Authentication auth) {
+        var user = currentUser(auth);
+        return jdbc.queryForList("""
+            SELECT m.id, m.title, m.content, m.is_read, m.created_at,
+                   s.display_name AS sender_name, s.role AS sender_role
+            FROM site_message m
+            JOIN app_user s ON s.id = m.sender_id
+            WHERE m.receiver_id = ?
+            ORDER BY m.id DESC
+            """, user.get("id"));
+    }
+
+    @PutMapping("/messages/{id}/read")
+    Map<String, Object> readMessage(@PathVariable long id, Authentication auth) {
+        var user = currentUser(auth);
+        int updated = jdbc.update(
+            "UPDATE site_message SET is_read = 1 WHERE id = ? AND receiver_id = ?",
+            id, user.get("id")
+        );
+        if (updated == 0) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权操作或信件不存在");
+        return Map.of("success", true);
+    }
+
+    private Integer countUnreadMessages(Object userId) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM site_message WHERE receiver_id = ? AND is_read = 0", Integer.class, userId);
+    }
+
+  @PostMapping("/messages")
+  Map<String, Object> sendMessage(Authentication auth, @RequestBody SendMessageRequest request) {
+    var user = currentUser(auth);
+    if (request == null || isBlank(request.title()) || isBlank(request.content()) || isBlank(request.receiverUsername())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "信件内容或收件人不能为空");
+    }
+    if (request.receiverUsername().equals(user.get("username"))) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "不能将信件发送给自己");
+    }
+    var targetUsers = jdbc.queryForList("SELECT id FROM app_user WHERE username = ?", request.receiverUsername());
+    if (targetUsers.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "收件人账号不存在，请检查拼写");
+    }
+
+    jdbc.update("""
+            INSERT INTO site_message (sender_id, receiver_id, title, content, is_read)
+            VALUES (?, ?, ?, ?, 0)
+            """, user.get("id"), targetUsers.get(0).get("id"), request.title(), request.content());
+
+    return Map.of("success", true);
+  }
+
+  record SendMessageRequest(String receiverUsername, String title, String content) {}
+  @GetMapping("/messages/sent")
+  List<Map<String, Object>> sentMessages(Authentication auth) {
+    var user = currentUser(auth);
+    return jdbc.queryForList("""
+            SELECT m.id, m.title, m.content, m.is_read, m.created_at,
+                   r.display_name AS receiver_name, r.role AS receiver_role
+            FROM site_message m
+            JOIN app_user r ON r.id = m.receiver_id
+            WHERE m.sender_id = ?
+            ORDER BY m.id DESC
+            """, user.get("id"));
+  }
 }
