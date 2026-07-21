@@ -16,12 +16,14 @@
 ```bash
 cd backend
 mvn spring-boot:run
+
 ```
 
 服务地址：
 
 ```text
 http://localhost:8080
+
 ```
 
 MySQL 连接信息：
@@ -29,12 +31,14 @@ MySQL 连接信息：
 ```text
 Database: xinqiao_counseling
 User: root
+
 ```
 
 本地启动前设置数据库密码环境变量，避免把个人密码提交到仓库：
 
 ```powershell
 $env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
+
 ```
 
 ## 测试账号
@@ -45,30 +49,31 @@ $env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
 医生：doctor_lin / doctor123
 就诊人员：patient_chen / patient123
 就诊人员：patient_li / patient123
+
 ```
 
 ## 权限设计
 
 管理员：
 
-- 可查看所有预约。
-- 可查看所有就诊人员档案。
-- 可查看所有既往就诊单。
-- 可访问 `/api/admin/**`。
+* 可查看所有预约。
+* 可查看所有就诊人员档案。
+* 可查看所有既往就诊单。
+* 可访问 `/api/admin/**`。
 
 医生：
 
-- 只能查看分配给自己的排班。
-- 只能查看与自己有预约关系的病人档案。
-- 只能查看自己负责病人的既往史和就诊单。
-- 不能访问 `/api/admin/**`。
+* 只能查看分配给自己的排班。
+* 只能查看与自己有预约关系的病人档案。
+* 只能查看自己负责病人的既往史和就诊单。
+* 不能访问 `/api/admin/**`。
 
 就诊人员：
 
-- 只能查看自己的预约。
-- 只能查看自己的档案。
-- 只能查看自己的既往就诊单。
-- 不能查看其他病人和医生管理数据。
+* 只能查看自己的预约。
+* 只能查看自己的档案。
+* 只能查看自己的既往就诊单。
+* 不能查看其他病人和医生管理数据。
 
 ## 登录和身份识别
 
@@ -78,6 +83,7 @@ $env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"doctor_zhang","password":"doctor123"}'
+
 ```
 
 登录成功返回：
@@ -89,14 +95,15 @@ workspace       当前身份的首页标题、副标题和主操作
 navigation      当前身份可见的导航菜单
 dashboardCards  当前身份首页卡片
 permissions     当前身份可访问和可管理的功能清单
+
 ```
 
 前端约定：
 
-- 登录页不要让用户勾选身份。
-- 登录成功后以 `user.role`、`navigation` 和 `dashboardCards` 渲染首页。
-- 退出登录时清除本地保存的登录响应，回到登录页。
-- 当前 `token` 是原型占位，不用于真实鉴权；接口调试和 Vite 前端列表请求暂时使用 HTTP Basic。
+* 登录页不要让用户勾选身份。
+* 登录成功后以 `user.role`、`navigation` 和 `dashboardCards` 渲染首页。
+* 退出登录时清除本地保存的登录响应，回到登录页。
+* 当前 `token` 是原型占位，不用于真实鉴权；接口调试和 Vite 前端列表请求暂时使用 HTTP Basic。
 
 ## 接口
 
@@ -113,6 +120,11 @@ GET /api/patients/{patientId}/history
 GET /api/visit-records
 GET /api/admin/dashboard
 GET /api/admin/users
+GET /api/messages
+GET /api/messages/sent
+POST /api/messages
+PUT /api/messages/{id}/read
+
 ```
 
 `POST /api/auth/login` 和 `GET /api/health` 不需要认证。其他 `/api/**` 接口当前使用 HTTP Basic 认证，认证账号统一读取 MySQL `app_user` 表。
@@ -125,42 +137,47 @@ curl -u doctor_zhang:doctor123 http://localhost:8080/api/appointments
 curl -u patient_chen:patient123 http://localhost:8080/api/appointments
 curl -u admin:admin123 http://localhost:8080/api/doctors
 curl -u admin:admin123 http://localhost:8080/api/admin/users
+
 ```
 
 医生和就诊人员访问同一个接口时会得到不同范围的数据，便于前端联调时验证角色权限。
 
 接口权限说明：
 
-- `/api/appointments`：管理员看全部，医生看分配给自己的，就诊人员看自己的。
-- `/api/patients`：管理员看全部，医生看有咨询关系的，就诊人员看自己的。
-- `/api/doctors`：管理员看全部，医生看自己，就诊人员看与自己有预约关系的咨询师。
-- `/api/visit-records`：管理员看全部，医生看自己负责的，就诊人员看自己的。
-- `/api/admin/users`：仅管理员查看系统用户列表。
+* `/api/appointments`：管理员看全部，医生看分配给自己的，就诊人员看自己的。
+* `/api/patients`：管理员看全部，医生看有咨询关系的，就诊人员看自己的。
+* `/api/doctors`：管理员看全部，医生看自己，就诊人员看与自己有预约关系的咨询师。
+* `/api/visit-records`：管理员看全部，医生看自己负责的，就诊人员看自己的。
+* `/api/admin/users`：仅管理员查看系统用户列表。
+* `/api/messages` 及相关接口：所有身份可用，严格隔离。用户只能查看发给自己的信件（收件箱）、自己发出的信件（发件箱），且只能操作属于自己的未读状态。
 
 ## 数据表
 
-- `app_user`：登录用户、BCrypt 密码哈希和角色。
-- `user_profile`：三类身份共用的联系方式、院系、办公室、紧急联系人和备注资料。
-- `doctor`：医生/咨询师资料。
-- `patient`：就诊人员档案。
-- `appointment`：预约排班。
-- `visit_record`：既往就诊单和咨询记录。
+* `app_user`：登录用户、BCrypt 密码哈希和角色。
+* `user_profile`：三类身份共用的联系方式、院系、办公室、紧急联系人和备注资料。
+* `doctor`：医生/咨询师资料。
+* `patient`：就诊人员档案。
+* `appointment`：预约排班。
+* `visit_record`：既往就诊单和咨询记录。
+* `site_message`：站内信记录，包含发件人、收件人、标题、内容及已读状态。
 
 初始化脚本位于：
 
 ```text
 src/main/resources/schema.sql
 src/main/resources/data.sql
+
 ```
 
 ## 开发建议
 
-- 新增表字段后同步更新 `schema.sql` 和 `data.sql`。
-- 新增接口前先确认前端页面需要的字段，避免返回过多敏感信息。
-- 当前 `ApiController` 是原型写法；接口稳定后建议拆分为 Controller、Service、Repository 和 DTO。
-- 当前演示账号已使用 BCrypt 哈希保存，新增账号也必须写入哈希后的密码。
-- 提交前执行：
+* 新增表字段后同步更新 `schema.sql` 和 `data.sql`。
+* 新增接口前先确认前端页面需要的字段，避免返回过多敏感信息。
+* 当前 `ApiController` 是原型写法；接口稳定后建议拆分为 Controller、Service、Repository 和 DTO。
+* 当前演示账号已使用 BCrypt 哈希保存，新增账号也必须写入哈希后的密码。
+* 提交前执行：
 
 ```bash
 mvn test
+
 ```
