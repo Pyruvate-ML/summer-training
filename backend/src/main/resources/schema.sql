@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS appointment;
 DROP TABLE IF EXISTS patient;
 DROP TABLE IF EXISTS doctor;
 DROP TABLE IF EXISTS user_profile;
+DROP TABLE IF EXISTS site_message;
 DROP TABLE IF EXISTS app_user;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -95,4 +96,19 @@ CREATE TABLE visit_record (
   CONSTRAINT fk_visit_patient FOREIGN KEY (patient_id) REFERENCES patient(id),
   CONSTRAINT fk_visit_doctor FOREIGN KEY (doctor_id) REFERENCES doctor(id),
   CONSTRAINT fk_visit_appointment FOREIGN KEY (appointment_id) REFERENCES appointment(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE site_message (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  sender_id BIGINT NOT NULL,
+  receiver_id BIGINT NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  content TEXT NOT NULL,
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_message_receiver (receiver_id),
+  INDEX idx_message_sender (sender_id),
+  CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES app_user(id),
+  CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES app_user(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
