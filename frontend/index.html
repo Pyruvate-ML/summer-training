@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心桥心理咨询平台</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +39,7 @@
             min-height: 100vh;
             background:
                 linear-gradient(rgba(97, 145, 75, 0.08), rgba(70, 42, 21, 0.15)),
-                url('./assets/pixel-farm-background.png') center/cover no-repeat;
+                url('./public/assets/pixel-farm-background.png') center/cover no-repeat;
         }
 
         .wood {
@@ -472,35 +472,35 @@ const { createApp, ref, computed } = Vue;
 
 const assets = {
     icons: {
-        heart: './assets/xinqiao/icons/png/heart.png',
-        logo: './assets/xinqiao/icons/png/logo_people.png',
-        calendar: './assets/xinqiao/icons/png/calendar.png',
-        clipboard: './assets/xinqiao/icons/png/clipboard.png',
-        team: './assets/xinqiao/icons/png/team.png',
-        archive: './assets/xinqiao/icons/png/archive_file.png',
-        overview: './assets/xinqiao/icons/png/overview_grid.png',
-        shield: './assets/xinqiao/icons/png/shield_check.png',
-        leaf: './assets/xinqiao/icons/png/leaf.png',
-        clock: './assets/xinqiao/icons/png/clock.png',
-        star: './assets/xinqiao/icons/png/star.png',
-        user: './assets/xinqiao/icons/png/team.png',
-        key: './assets/xinqiao/icons/png/shield_check.png',
-        chart: './assets/xinqiao/icons/png/section_overview.png',
-        plus: './assets/xinqiao/icons/png/plus_button.png'
+        heart: './public/assets/xinqiao/icons/png/heart.png',
+        logo: './public/assets/xinqiao/icons/png/logo_people.png',
+        calendar: './public/assets/xinqiao/icons/png/calendar.png',
+        clipboard: './public/assets/xinqiao/icons/png/clipboard.png',
+        team: './public/assets/xinqiao/icons/png/team.png',
+        archive: './public/assets/xinqiao/icons/png/archive_file.png',
+        overview: './public/assets/xinqiao/icons/png/overview_grid.png',
+        shield: './public/assets/xinqiao/icons/png/shield_check.png',
+        leaf: './public/assets/xinqiao/icons/png/leaf.png',
+        clock: './public/assets/xinqiao/icons/png/clock.png',
+        star: './public/assets/xinqiao/icons/png/star.png',
+        user: './public/assets/xinqiao/icons/png/team.png',
+        key: './public/assets/xinqiao/icons/png/shield_check.png',
+        chart: './public/assets/xinqiao/icons/png/section_overview.png',
+        plus: './public/assets/xinqiao/icons/png/plus_button.png'
     },
     env: {
-        house: './assets/xinqiao/env/png/house.png',
-        bench: './assets/xinqiao/env/png/tree.png'
+        house: './public/assets/xinqiao/env/png/house.png',
+        bench: './public/assets/xinqiao/env/png/tree.png'
     },
     avatars: {
-        admin: './assets/xinqiao/avatars/png/counselor_06.png',
-        doctor: './assets/xinqiao/avatars/png/counselor_01.png',
-        patient: './assets/xinqiao/avatars/png/visitor_01.png',
-        counselor01: './assets/xinqiao/avatars/png/counselor_01.png',
-        visitor01: './assets/xinqiao/avatars/png/visitor_01.png',
-        visitor02: './assets/xinqiao/avatars/png/visitor_02.png',
-        visitor03: './assets/xinqiao/avatars/png/visitor_03.png',
-        visitor04: './assets/xinqiao/avatars/png/visitor_04.png'
+        admin: './public/assets/xinqiao/avatars/png/counselor_06.png',
+        doctor: './public/assets/xinqiao/avatars/png/counselor_01.png',
+        patient: './public/assets/xinqiao/avatars/png/visitor_01.png',
+        counselor01: './public/assets/xinqiao/avatars/png/counselor_01.png',
+        visitor01: './public/assets/xinqiao/avatars/png/visitor_01.png',
+        visitor02: './public/assets/xinqiao/avatars/png/visitor_02.png',
+        visitor03: './public/assets/xinqiao/avatars/png/visitor_03.png',
+        visitor04: './public/assets/xinqiao/avatars/png/visitor_04.png'
     }
 };
 
@@ -629,7 +629,8 @@ createApp({
         const showPassword = ref(false);
         const isLoggingIn = ref(false);
         const loginError = ref('');
-	const messageTab = ref('inbox');
+        const apiBase = 'http://localhost:8080';
+        const messageTab = ref('inbox');
         const showCompose = ref(false);
         const sending = ref(false);
         const composeForm = ref({ receiverUsername: '', title: '', content: '' });
@@ -859,7 +860,7 @@ createApp({
             loginError.value = '';
             isLoggingIn.value = true;
             try {
-                const response = await fetch('http://localhost:11234/api/auth/login', {
+                const response = await fetch(`${apiBase}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(loginForm.value)
@@ -927,20 +928,20 @@ createApp({
             if (value.length >= 4) return 'text-[clamp(28px,2.4vw,42px)] break-words';
             return 'text-[clamp(32px,3vw,50px)]';
         };
-	const fetchMessages = async () => {
+        const fetchMessages = async () => {
             if (!session.value) return;
             const headers = { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` };
             
             try {
                 // 获取收件箱
-                const inboxRes = await fetch('http://localhost:11234/api/messages', { headers });
+                const inboxRes = await fetch(`${apiBase}/api/messages`, { headers });
                 if (inboxRes.ok) {
                     const data = await inboxRes.json();
                     messages.value = data.map(m => ({ ...m, is_read: m.is_read ? '已读' : '未读' }));
                 }
                 
                 // 获取发件箱
-                const sentRes = await fetch('http://localhost:11234/api/messages/sent', { headers });
+                const sentRes = await fetch(`${apiBase}/api/messages/sent`, { headers });
                 if (sentRes.ok) {
                     const data = await sentRes.json();
                     sentMessages.value = data.map(m => ({ ...m, is_read: m.is_read ? '对方已读' : '对方未读' }));
@@ -949,13 +950,13 @@ createApp({
                 console.error("加载信箱失败", e);
             }
         };
-	const openMessage = async (row) => {
+        const openMessage = async (row) => {
             if (currentPage.value !== 'messages') return;
             readingMessage.value = row;
 
             if (messageTab.value === 'inbox' && row.is_read === '未读') {
                 try {
-                    await fetch(`http://localhost:11234/api/messages/${row.id}/read`, {
+                    await fetch(`${apiBase}/api/messages/${row.id}/read`, {
                         method: 'PUT',
                         headers: { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` }
                     });
@@ -975,7 +976,7 @@ createApp({
             if (!composeForm.value.receiverUsername || !composeForm.value.title || !composeForm.value.content) return;
             sending.value = true;
             try {
-                const response = await fetch('http://localhost:11234/api/messages', {
+                const response = await fetch(`${apiBase}/api/messages`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
