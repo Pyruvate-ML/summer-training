@@ -69,11 +69,26 @@ User: root
 `Import from Self-Contained File`，导入仓库中的 `sql/schema.sql`。该脚本会创建
 `xinqiao_counseling` 数据库、全部 7 张业务表及联调用的基础数据。
 
+macOS 可使用以下命令完成已验证的 MySQL 8.4 安装和导入：
+
+```bash
+brew install mysql@8.4
+brew services start mysql@8.4
+/opt/homebrew/opt/mysql@8.4/bin/mysql -u root < sql/schema.sql
+/opt/homebrew/opt/mysql@8.4/bin/mysql -u root -D xinqiao_counseling -e "SHOW TABLES;"
+```
+
+如果 root 已设置密码，请在两条 `mysql` 命令中加上 `-p`。
+
 收到的 `xinqiao_counseling.sql` 已按当前项目接口完成兼容整合：登录密码改为
 BCrypt 哈希，并补充个人资料、站内信、时间字段和必要索引，避免导入旧脚本后
 现有登录及信箱功能失效。
 
 本地启动前设置数据库密码环境变量，避免把个人密码提交到仓库：
+
+```bash
+export XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
+```
 
 ```powershell
 $env:XINQIAO_DB_PASSWORD="你的本地 MySQL 密码"
