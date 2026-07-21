@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS appointment;
 DROP TABLE IF EXISTS patient;
 DROP TABLE IF EXISTS doctor;
 DROP TABLE IF EXISTS user_profile;
+DROP TABLE IF EXISTS site_message;
 DROP TABLE IF EXISTS app_user;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -106,6 +107,20 @@ CREATE TABLE visit_record (
   CONSTRAINT fk_visit_appointment FOREIGN KEY (appointment_id) REFERENCES appointment(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE site_message (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  sender_id BIGINT NOT NULL,
+  receiver_id BIGINT NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  content TEXT NOT NULL,
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_message_receiver (receiver_id),
+  INDEX idx_message_sender (sender_id),
+  CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES app_user(id),
+  CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES app_user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO app_user(username, password_hash, display_name, role) VALUES
   ('admin', '$2a$10$9Gl09eKn08pXyQIXfK0IQ.Ot5nYlUCj8Cj/dasR5D4LVaqTrKG7DS', '系统管理员', 'ADMIN'),
   ('doctor_zhang', '$2a$10$UNZ8wbkyhMbDoCyLVGOSTODR5ee9hbkb1tTg7FdyqBF0GMlyhcM9e', '张明悦', 'DOCTOR'),
@@ -136,3 +151,8 @@ INSERT INTO appointment(patient_id, doctor_id, topic, appointment_time, status, 
 INSERT INTO visit_record(patient_id, doctor_id, appointment_id, visit_time, diagnosis_summary, treatment_note, next_plan) VALUES
   (1, 1, 3, '2026-07-17 16:00:00', '阶段性考试焦虑，睡眠略受影响', '完成情绪识别练习，建议记录考前自动化想法。', '2 天后回访'),
   (2, 2, NULL, '2026-07-15 14:30:00', '宿舍沟通压力，人际边界不清', '讨论沟通边界和求助资源。', '本周团辅');
+
+INSERT INTO site_message(sender_id, receiver_id, title, content, is_read) VALUES
+  (1, 2, '测试邮件1', '测试能不能正常收邮件', 0),
+  (2, 4, '？', '你人呢', 1),
+  (4, 2, '。', '我懒得来了', 1);

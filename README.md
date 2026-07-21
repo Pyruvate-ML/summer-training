@@ -25,7 +25,7 @@
 
 - 前端：Vue 3、Vite，入口位于 `frontend/`，像素风素材复制到 `frontend/public/assets/`。
 - 后端：Java 17、Spring Boot 3、Spring Security、Spring JDBC、MySQL，入口位于 `backend/`。
-- 数据库：开发库为 `xinqiao_counseling`，后端启动时自动执行 `backend/src/main/resources/schema.sql` 和 `backend/src/main/resources/data.sql`。
+- 数据库：开发库为 `xinqiao_counseling`，包含用户、个人资料、咨询师、来访者、预约、病例和站内信 7 张表；后端启动时自动执行 `backend/src/main/resources/schema.sql` 和 `backend/src/main/resources/data.sql`。
 - 认证方式：登录接口和 HTTP Basic 调试认证统一读取 MySQL `app_user` 表；后续正式版可替换为 JWT 或 Session。
 - 前端状态：登录、角色工作台、导航、首页卡片和主要列表已迁入 Vite 工程；根目录 `index.html` 暂时作为旧原型留存。
 
@@ -64,6 +64,14 @@ MySQL 开发库：
 Database: xinqiao_counseling
 User: root
 ```
+
+首次初始化也可以使用 MySQL Workbench：打开 `Server -> Data Import`，选择
+`Import from Self-Contained File`，导入仓库中的 `sql/schema.sql`。该脚本会创建
+`xinqiao_counseling` 数据库、全部 7 张业务表及联调用的基础数据。
+
+收到的 `xinqiao_counseling.sql` 已按当前项目接口完成兼容整合：登录密码改为
+BCrypt 哈希，并补充个人资料、站内信、时间字段和必要索引，避免导入旧脚本后
+现有登录及信箱功能失效。
 
 本地启动前设置数据库密码环境变量，避免把个人密码提交到仓库：
 
