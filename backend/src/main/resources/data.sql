@@ -28,3 +28,16 @@ INSERT INTO appointment(patient_id, doctor_id, topic, appointment_time, status, 
 INSERT INTO visit_record(patient_id, doctor_id, appointment_id, visit_time, diagnosis_summary, treatment_note, next_plan) VALUES
   (1, 1, 3, '2026-07-17 16:00:00', '阶段性考试焦虑，睡眠略受影响', '完成情绪识别练习，建议记录考前自动化想法。', '2 天后回访'),
   (2, 2, NULL, '2026-07-15 14:30:00', '宿舍沟通压力，人际边界不清', '讨论沟通边界和求助资源。', '本周团辅');
+
+
+-- 操作日志与审计追踪样本数据
+INSERT INTO audit_log(operator_id, operator_name, operation_type, target_type, target_id, target_description, old_value, new_value, reason, ip_address, created_at) VALUES
+  (1, '系统管理员', 'LOGIN', 'user', 1, '系统管理员登录', NULL, NULL, NULL, '127.0.0.1', '2026-07-21 08:30:00'),
+  (1, '系统管理员', 'VIEW_SENSITIVE', 'patient', 1, '查看陈同学的档案', NULL, NULL, '查看评估等级详情', '127.0.0.1', '2026-07-21 08:32:00'),
+  (1, '系统管理员', 'MODIFY_RISK_LEVEL', 'patient', 2, '李同学的评估等级', '{"assessment_level":"普通"}', '{"assessment_level":"关注"}', '人工复核测评结果确认需要重点关注', '127.0.0.1', '2026-07-21 09:00:00'),
+  (2, '张明悦', 'VIEW_SENSITIVE', 'patient', 1, '查看陈同学咨询记录', NULL, NULL, '填写咨询记录前查阅历史', '127.0.0.1', '2026-07-21 08:45:00'),
+  (1, '系统管理员', 'MODIFY_APPOINTMENT', 'appointment', 1, '调整 #1 预约时间', '{"appointment_time":"2026-07-20 10:30:00"}', '{"appointment_time":"2026-07-20 14:00:00"}', '来访者申请时间调整', '127.0.0.1', '2026-07-19 16:20:00'),
+  (1, '系统管理员', 'MODIFY_USER_PERMISSION', 'user', 3, '修改林思远医生角色', '{"role":"DOCTOR"}', '{"role":"DOCTOR","enabled":1}', '账号状态维持不变', '127.0.0.1', '2026-07-18 10:00:00'),
+  (4, '陈同学', 'LOGIN', 'user', 4, '陈同学登录系统', NULL, NULL, NULL, '192.168.1.100', '2026-07-21 08:00:00'),
+  (2, '张明悦', 'LOGIN', 'user', 2, '张明悦登录系统', NULL, NULL, NULL, '192.168.1.101', '2026-07-21 08:40:00'),
+  (1, '系统管理员', 'EXPORT_DATA', 'user', 0, '导出来访者数据报表', NULL, NULL, '月末数据汇总上报', '127.0.0.1', '2026-07-21 10:00:00');
