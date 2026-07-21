@@ -220,7 +220,7 @@
         <div class="flex min-h-0 flex-1">
             <aside class="wood w-[clamp(240px,19vw,320px)] border-0 border-r-4 border-[var(--wood-dark)] p-[clamp(14px,1.8vw,26px)] flex flex-col">
                 <nav class="space-y-4">
-                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key">
+                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key; if(item.key === 'messages') fetchMessages()">
                         <img class="asset w-10 h-10 shrink-0" :src="navIcon(item.key)" alt="">
                         <span class="truncate">{{ item.label }}</span>
                     </button>
@@ -335,6 +335,61 @@
                     <data-table v-else-if="currentPage === 'visitRecords'" title="咨询记录" :rows="visibleRecords" :columns="recordColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'users'" title="系统用户" :rows="userRows" :columns="userColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'followPlans'" title="跟进计划" :rows="followPlans" :columns="followColumns" :assets="assets"></data-table>
+<!-- 站内信箱区域 -->
+                    <section v-else-if="currentPage === 'messages'" class="space-y-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex gap-4">
+                                <button class="pixel-btn px-5 py-3 text-xl font-bold" :class="{ secondary: messageTab !== 'inbox' }" @click="messageTab = 'inbox'">收件箱</button>
+                                <button class="pixel-btn px-5 py-3 text-xl font-bold" :class="{ secondary: messageTab !== 'sent' }" @click="messageTab = 'sent'">已发送</button>
+                            </div>
+                            <button class="pixel-btn px-5 py-3 text-xl font-bold" @click="showCompose = true">+ 撰写新信件</button>
+                        </div>
+                        
+                        <data-table v-if="messageTab === 'inbox'" title="收件箱" :rows="messages" :columns="messageColumns" :assets="assets" @row-click="openMessage"></data-table>
+                        <data-table v-if="messageTab === 'sent'" title="已发送" :rows="sentMessages" :columns="sentMessageColumns" :assets="assets" @row-click="openMessage"></data-table>
+                    </section>
+
+                    <!-- 撰写信件弹窗 -->
+                    <div v-if="showCompose" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div class="paper w-full max-w-lg p-6">
+                            <h3 class="text-3xl font-bold mb-5">发送站内信</h3>
+                            <form @submit.prevent="submitMessage" class="space-y-4 text-xl">
+                                <label class="block">
+                                    <span class="block font-bold mb-2">收件人登录账号</span>
+                                    <input v-model.trim="composeForm.receiverUsername" required class="pixel-input w-full h-12 px-4 outline-none">
+                                </label>
+                                <label class="block">
+                                    <span class="block font-bold mb-2">主题</span>
+                                    <input v-model.trim="composeForm.title" required class="pixel-input w-full h-12 px-4 outline-none">
+                                </label>
+                                <label class="block">
+                                    <span class="block font-bold mb-2">内容</span>
+                                    <textarea v-model.trim="composeForm.content" required rows="4" class="pixel-input w-full p-4 outline-none resize-none"></textarea>
+                                </label>
+                                <div class="flex justify-end gap-4 mt-6">
+                                    <button type="button" class="pixel-btn secondary px-5 py-3 font-bold" @click="showCompose = false">取消</button>
+                                    <button type="submit" class="pixel-btn px-5 py-3 font-bold" :disabled="sending">发送</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 阅读信件弹窗 -->
+                    <div v-if="readingMessage" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div class="paper w-full max-w-lg p-6">
+                            <h3 class="text-3xl font-bold mb-2">{{ readingMessage.title }}</h3>
+                            <p class="text-xl text-[var(--muted)] mb-4">
+                                <span v-if="messageTab === 'inbox'">发件人：{{ readingMessage.sender_name }}</span>
+                                <span v-else>收件人：{{ readingMessage.receiver_name }}</span>
+                            </p>
+                            <div class="bg-white/60 p-4 border-2 border-dashed border-[#c58a4b] min-h-[120px] whitespace-pre-wrap text-xl leading-relaxed">
+                                {{ readingMessage.content }}
+                            </div>
+                            <div class="flex justify-end mt-6">
+                                <button type="button" class="pixel-btn px-5 py-3 font-bold" @click="closeMessage">关闭</button>
+                            </div>
+                        </div>
+                    </div>
                     <section v-else-if="currentPage === 'profile'" class="grid xl:grid-cols-3 gap-5">
                         <article class="paper p-6 xl:col-span-1">
                             <div class="flex flex-col items-center text-center">
@@ -519,7 +574,7 @@ const fallbackSessions = {
 };
 
 const DataTable = {
-    props: ['title', 'rows', 'columns', 'assets'],
+    props: ['title', 'rows', 'columns', 'assets'], emits: ['row-click'],
     template: `
         <article class="paper overflow-hidden">
             <div class="flex items-center justify-between px-5 py-4 border-b-2 border-dashed border-[#c58a4b]">
@@ -537,7 +592,9 @@ const DataTable = {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(row, index) in rows" :key="index" class="border-t-2 border-dashed border-[#d4a263] hover:bg-[#fff7df]">
+                        <tr v-for="(row, index) in rows" :key="index" 
+                            class="border-t-2 border-dashed border-[#d4a263] hover:bg-[#fff7df] cursor-pointer"
+                            @click="$emit('row-click', row)">
                             <td v-for="column in columns" :key="column.key" class="table-cell px-4 py-3 text-lg border-r-2 border-dashed border-[#d4a263] last:border-r-0" :class="column.type ? 'w-[8.2rem] text-center' : ''">
                                 <span v-if="column.type === 'status'" class="tag status-badge" :class="statusClass(row[column.key])">{{ row[column.key] }}</span>
                                 <span v-else-if="column.type === 'level'" class="tag status-badge" :class="levelClass(row[column.key])">{{ row[column.key] }}</span>
@@ -572,6 +629,25 @@ createApp({
         const showPassword = ref(false);
         const isLoggingIn = ref(false);
         const loginError = ref('');
+	const messageTab = ref('inbox');
+        const showCompose = ref(false);
+        const sending = ref(false);
+        const composeForm = ref({ receiverUsername: '', title: '', content: '' });
+        const readingMessage = ref(null);
+        const messages = ref([]);
+        const sentMessages = ref([]);
+        const messageColumns = [
+            { key: 'created_at', label: '时间' },
+            { key: 'sender_name', label: '发件人' },
+            { key: 'title', label: '主题' },
+            { key: 'is_read', label: '状态', type: 'status' }
+        ];
+        const sentMessageColumns = [
+            { key: 'created_at', label: '时间' },
+            { key: 'receiver_name', label: '收件人' },
+            { key: 'title', label: '主题' },
+            { key: 'is_read', label: '状态', type: 'status' }
+        ];
 
         const demoAccounts = [
             { roleName: '管理员', username: 'admin', password: 'admin123' },
@@ -672,7 +748,12 @@ createApp({
             { time: '04月14日', summary: '自我认知与成长目标', counselor: '张医生', feeling: '积极' }
         ]);
 
-        const navItems = computed(() => session.value?.navigation || []);
+        const navItems = computed(() => { const items = session.value?.navigation || [];
+    if (items.length > 0 && !items.find(i => i.key === 'messages')) {
+        items.push({ key: 'messages', label: '站内信箱' });
+    }
+    return items;
+});
         const dashboardCards = computed(() => session.value?.dashboardCards || []);
         const currentNavLabel = computed(() => navItems.value.find(item => item.key === currentPage.value)?.label || '功能页');
         const currentAvatar = computed(() => {
@@ -778,7 +859,7 @@ createApp({
             loginError.value = '';
             isLoggingIn.value = true;
             try {
-                const response = await fetch('http://localhost:8080/api/auth/login', {
+                const response = await fetch('http://localhost:11234/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(loginForm.value)
@@ -846,6 +927,78 @@ createApp({
             if (value.length >= 4) return 'text-[clamp(28px,2.4vw,42px)] break-words';
             return 'text-[clamp(32px,3vw,50px)]';
         };
+	const fetchMessages = async () => {
+            if (!session.value) return;
+            const headers = { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` };
+            
+            try {
+                // 获取收件箱
+                const inboxRes = await fetch('http://localhost:11234/api/messages', { headers });
+                if (inboxRes.ok) {
+                    const data = await inboxRes.json();
+                    messages.value = data.map(m => ({ ...m, is_read: m.is_read ? '已读' : '未读' }));
+                }
+                
+                // 获取发件箱
+                const sentRes = await fetch('http://localhost:11234/api/messages/sent', { headers });
+                if (sentRes.ok) {
+                    const data = await sentRes.json();
+                    sentMessages.value = data.map(m => ({ ...m, is_read: m.is_read ? '对方已读' : '对方未读' }));
+                }
+            } catch (e) {
+                console.error("加载信箱失败", e);
+            }
+        };
+	const openMessage = async (row) => {
+            if (currentPage.value !== 'messages') return;
+            readingMessage.value = row;
+
+            if (messageTab.value === 'inbox' && row.is_read === '未读') {
+                try {
+                    await fetch(`http://localhost:11234/api/messages/${row.id}/read`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` }
+                    });
+                    row.is_read = '已读';
+                } catch (e) {
+                    console.error('标记已读失败', e);
+                }
+            }
+        };
+
+        const closeMessage = () => {
+            readingMessage.value = null;
+            fetchMessages(); // 刷新列表
+        };
+
+        const submitMessage = async () => {
+            if (!composeForm.value.receiverUsername || !composeForm.value.title || !composeForm.value.content) return;
+            sending.value = true;
+            try {
+                const response = await fetch('http://localhost:11234/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}`
+                    },
+                    body: JSON.stringify(composeForm.value)
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || '发送失败');
+                }
+                
+                showCompose.value = false;
+                composeForm.value = { receiverUsername: '', title: '', content: '' };
+                alert('发送成功！');
+                fetchMessages();
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                sending.value = false;
+            }
+        };
 
         return {
             assets,
@@ -892,7 +1045,7 @@ createApp({
             logout,
             navIcon,
             cardIcon,
-            cardValueClass
+            cardValueClass, messageTab, messages, sentMessages, showCompose, composeForm, readingMessage, sending, messageColumns, sentMessageColumns, openMessage, closeMessage, submitMessage, fetchMessages
         };
     }
 }).mount('#app');
