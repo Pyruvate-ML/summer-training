@@ -45,7 +45,7 @@
             :key="item.key"
             :class="{ active: currentPage === item.key }"
             type="button"
-            @click="currentPage = item.key"
+            @click="setCurrentPage(item.key)"
           >
             <img :src="navIcon(item.key)" alt="" />
             {{ item.label }}
@@ -61,7 +61,7 @@
             <h1>{{ session.workspace.title }}</h1>
             <p>{{ session.workspace.subtitle }}</p>
           </div>
-          <button class="pixel-btn" type="button">{{ session.workspace.primaryAction }}</button>
+          <button class="pixel-btn" type="button" @click="handlePrimaryAction">{{ session.workspace.primaryAction }}</button>
         </header>
 
         <section v-if="currentPage === 'dashboard'" class="dashboard">
@@ -74,8 +74,57 @@
           </article>
         </section>
 
+        <article v-else-if="currentPage === 'bookings'" class="paper form-panel">
+          <div class="table-title">
+            <div>
+              <p class="eyebrow">Booking</p>
+              <h3>提交预约申请</h3>
+            </div>
+          </div>
+          <form class="booking-form" @submit.prevent="submitBooking">
+            <label v-if="session.user.role === 'ADMIN'">
+              <span>来访者</span>
+              <select v-model.number="bookingForm.patientId" required>
+                <option v-for="patient in patients" :key="patient.id" :value="patient.id">
+                  {{ patient.name }} · {{ patient.primary_topic }}
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>咨询师</span>
+              <select v-model.number="bookingForm.doctorId" required>
+                <option v-for="doctor in doctors" :key="doctor.id" :value="doctor.id">
+                  {{ doctor.name }} · {{ doctor.title }}
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>预约时间</span>
+              <input v-model="bookingForm.appointmentTime" type="datetime-local" required />
+            </label>
+            <label>
+              <span>咨询主题</span>
+              <input v-model.trim="bookingForm.topic" placeholder="例如：考试焦虑 / 人际关系" required />
+            </label>
+            <label>
+              <span>地点/方式</span>
+              <input v-model.trim="bookingForm.location" placeholder="咨询室1 / 在线咨询" />
+            </label>
+            <label class="wide">
+              <span>预约原因</span>
+              <textarea v-model.trim="bookingForm.reason" placeholder="简单说明希望咨询的问题，便于咨询师确认"></textarea>
+            </label>
+            <div class="form-actions wide">
+              <button class="pixel-btn" type="submit" :disabled="bookingSubmitting">
+                {{ bookingSubmitting ? '提交中...' : '提交预约申请' }}
+              </button>
+              <p v-if="bookingMessage" :class="bookingSuccess ? 'success-text' : 'error-text'">{{ bookingMessage }}</p>
+            </div>
+          </form>
+        </article>
+
         <DataTable
-          v-else-if="currentPage === 'appointments' || currentPage === 'bookings'"
+          v-else-if="currentPage === 'appointments'"
           title="预约排期"
           eyebrow="Appointment"
           :columns="appointmentColumns"
@@ -115,6 +164,16 @@
         />
 
         <DataTable
+          v-else-if="currentPage === 'auditLogs'"
+          title="审计日志"
+          eyebrow="Audit"
+          :columns="auditLogColumns"
+          :rows="auditLogs"
+          :loading="loading"
+          @refresh="loadWorkspaceData"
+        />
+
+        <DataTable
           v-else-if="currentPage === 'users'"
           title="系统用户"
           eyebrow="RBAC"
@@ -137,7 +196,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import DataTable from './components/DataTable.vue';
-import { apiGet, clearSession, loadSession, login, saveSession } from './api/client';
+import { apiGet, apiPost, clearSession, loadSession, login, saveSession } from './api/client';
 import logoPeople from '../../assets/xinqiao/icons/png/logo_people.png';
 import overview from '../../assets/xinqiao/icons/png/overview_grid.png';
 import calendar from '../../assets/xinqiao/icons/png/calendar.png';
@@ -163,6 +222,18 @@ const patients = ref([]);
 const doctors = ref([]);
 const visitRecords = ref([]);
 const users = ref([]);
+const auditLogs = ref([]);
+const bookingSubmitting = ref(false);
+const bookingMessage = ref('');
+const bookingSuccess = ref(false);
+const bookingForm = ref({
+  patientId: null,
+  doctorId: null,
+  topic: '考试焦虑',
+  appointmentTime: '2026-07-22T14:00',
+  location: '心桥心理咨询室',
+  reason: '希望预约一次个体咨询'
+});
 const icons = {
   logoPeople,
   overview,
@@ -222,7 +293,18 @@ const userColumns = [
   { key: 'created_at', label: '创建时间' }
 ];
 
-const currentNavLabel = computed(() => session.value?.navigation.find(item => item.key === currentPage.value)?.label || '功能页');
+const auditLogColumns = [
+  { key: 'created_at', label: '操作时间' },
+  { key: 'operator_name', label: '操作人' },
+  { key: 'operation_type', label: '操作类型', badge: true },
+  { key: 'target_description', label: '操作对象' },
+  { key: 'reason', label: '操作原因' }
+];
+
+const currentNavLabel = computed(() => {
+  if (currentPage.value === 'bookings') return session.value?.user.role === 'ADMIN' ? '安排咨询' : '预约咨询';
+  return session.value?.navigation.find(item => item.key === currentPage.value)?.label || '功能页';
+});
 
 function fillAccount(account) {
   loginForm.value = { username: account.username, password: account.password };
@@ -255,10 +337,60 @@ async function loadWorkspaceData() {
     ];
     if (session.value.user.role === 'ADMIN') {
       tasks.push(apiGet('/api/admin/users', session.value).then(data => { users.value = data; }));
+      tasks.push(apiGet('/api/admin/audit-logs', session.value).then(data => { auditLogs.value = data; }));
     }
     await Promise.all(tasks);
+    ensureBookingDefaults();
   } finally {
     loading.value = false;
+  }
+}
+
+function ensureBookingDefaults() {
+  if (!bookingForm.value.doctorId && doctors.value.length > 0) {
+    bookingForm.value.doctorId = doctors.value[0].id;
+  }
+  if (!bookingForm.value.patientId && patients.value.length > 0) {
+    bookingForm.value.patientId = patients.value[0].id;
+  }
+}
+
+async function setCurrentPage(key) {
+  currentPage.value = key;
+  bookingMessage.value = '';
+  if (key === 'bookings') {
+    ensureBookingDefaults();
+  }
+  if (session.value) {
+    await loadWorkspaceData();
+  }
+}
+
+async function handlePrimaryAction() {
+  if (!session.value) return;
+  if (session.value.user.role === 'ADMIN' || session.value.user.role === 'PATIENT') {
+    await setCurrentPage('bookings');
+  }
+}
+
+async function submitBooking() {
+  bookingMessage.value = '';
+  bookingSuccess.value = false;
+  bookingSubmitting.value = true;
+  try {
+    const payload = { ...bookingForm.value };
+    if (session.value.user.role !== 'ADMIN') {
+      delete payload.patientId;
+    }
+    const result = await apiPost('/api/appointments', session.value, payload);
+    bookingSuccess.value = true;
+    bookingMessage.value = result.message || '预约申请已提交';
+    await loadWorkspaceData();
+    currentPage.value = 'appointments';
+  } catch (error) {
+    bookingMessage.value = error.message || '预约提交失败';
+  } finally {
+    bookingSubmitting.value = false;
   }
 }
 
@@ -277,6 +409,7 @@ function navIcon(key) {
     patients: icons.archive,
     visitRecords: icons.clipboard,
     users: icons.sectionTeam,
+    auditLogs: icons.shield,
     statistics: icons.leaf,
     followPlans: icons.heart,
     profile: icons.logoPeople

@@ -1,6 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS visit_record;
 DROP TABLE IF EXISTS appointment;
+DROP TABLE IF EXISTS audit_log;
 DROP TABLE IF EXISTS patient;
 DROP TABLE IF EXISTS doctor;
 DROP TABLE IF EXISTS user_profile;
@@ -111,4 +112,23 @@ CREATE TABLE site_message (
   INDEX idx_message_sender (sender_id),
   CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES app_user(id),
   CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES app_user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE audit_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  operator_id BIGINT NOT NULL,
+  operator_name VARCHAR(64) NOT NULL,
+  operation_type VARCHAR(64) NOT NULL COMMENT 'LOGIN/UPDATE_PROFILE/VIEW_SENSITIVE/CREATE_APPOINTMENT',
+  target_type VARCHAR(64) NOT NULL COMMENT 'user/user_profile/patient/appointment',
+  target_id BIGINT,
+  target_description VARCHAR(255),
+  old_value TEXT,
+  new_value TEXT,
+  reason VARCHAR(500),
+  ip_address VARCHAR(64),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_audit_operator (operator_id),
+  INDEX idx_audit_type (operation_type),
+  INDEX idx_audit_target (target_type, target_id),
+  INDEX idx_audit_time (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

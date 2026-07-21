@@ -43,3 +43,18 @@ export async function apiGet(path, session) {
   }
   return response.json();
 }
+
+export async function apiPost(path, session, payload) {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: session.authHeader
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    throw new Error(`接口请求失败：${path}`);
+  }
+  return response.json();
+}

@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,10 +26,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class ApiController {
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLog;
 
-    public ApiController(JdbcTemplate jdbc, PasswordEncoder passwordEncoder) {
+    public ApiController(JdbcTemplate jdbc, PasswordEncoder passwordEncoder, AuditLogService auditLog) {
         this.jdbc = jdbc;
         this.passwordEncoder = passwordEncoder;
+        this.auditLog = auditLog;
     }
 
     @PostMapping("/auth/login")
@@ -50,6 +55,10 @@ public class ApiController {
 
         var user = users.get(0);
         user.remove("passwordHash");
+        auditLog.log(authForUsername(request.username()), "LOGIN", "user",
+            ((Number) user.get("id")).longValue(),
+            user.get("display_name") + "登录系统",
+            null, null, null);
         return sessionPayload(user);
     }
 
@@ -91,6 +100,10 @@ public class ApiController {
             nullIfBlank(request.preferenceNote()),
             nullIfBlank(request.bio())
         );
+        auditLog.log(auth, "UPDATE_PROFILE", "user_profile",
+            ((Number) user.get("id")).longValue(),
+            user.get("display_name") + "更新了个人资料",
+            null, null, null);
         return userProfile(user);
     }
 
@@ -116,6 +129,67 @@ public class ApiController {
             return queryAppointments("WHERE d.user_id = " + user.get("id"));
         }
         return queryAppointments("WHERE p.user_id = " + user.get("id"));
+    }
+
+    @PostMapping("/appointments")
+    Map<String, Object> createAppointment(Authentication auth, @RequestBody AppointmentCreateRequest request) {
+        var user = currentUser(auth);
+        if (request == null || request.doctorId() == null || isBlank(request.topic()) || isBlank(request.appointmentTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "预约信息不完整");
+        }
+
+        Long patientId = resolvePatientId(user, request.patientId());
+        var patientRows = jdbc.queryForList("SELECT id, name FROM patient WHERE id = ?", patientId);
+        if (patientRows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "来访者档案不存在");
+        }
+        var doctorRows = jdbc.queryForList("SELECT id, name FROM doctor WHERE id = ?", request.doctorId());
+        if (doctorRows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "咨询师不存在");
+        }
+
+        String appointmentTime = request.appointmentTime().trim().replace("T", " ");
+        if (appointmentTime.length() == 16) {
+            appointmentTime = appointmentTime + ":00";
+        }
+        String location = isBlank(request.location()) ? "心桥心理咨询室" : request.location().trim();
+        var patient = patientRows.get(0);
+        var doctor = doctorRows.get(0);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String finalAppointmentTime = appointmentTime;
+        jdbc.update(connection -> {
+            var statement = connection.prepareStatement("""
+                INSERT INTO appointment(patient_id, doctor_id, topic, appointment_time, status, location)
+                VALUES (?, ?, ?, ?, '静候确认', ?)
+                """, java.sql.Statement.RETURN_GENERATED_KEYS);
+            statement.setLong(1, patientId);
+            statement.setLong(2, request.doctorId());
+            statement.setString(3, request.topic().trim());
+            statement.setString(4, finalAppointmentTime);
+            statement.setString(5, location);
+            return statement;
+        }, keyHolder);
+
+        Long appointmentId = keyHolder.getKey() == null ? null : keyHolder.getKey().longValue();
+        String newValue = """
+            {"patient":"%s","doctor":"%s","topic":"%s","appointment_time":"%s","status":"静候确认","location":"%s"}
+            """.formatted(
+            patient.get("name"),
+            doctor.get("name"),
+            request.topic().trim(),
+            finalAppointmentTime,
+            location
+        ).trim();
+        auditLog.log(auth, "CREATE_APPOINTMENT", "appointment", appointmentId,
+            patient.get("name") + "提交预约申请",
+            null, newValue, nullIfBlank(request.reason()));
+
+        return Map.of(
+            "id", appointmentId,
+            "status", "静候确认",
+            "message", "预约申请已提交，等待咨询师确认"
+        );
     }
 
     @GetMapping("/patients")
@@ -179,6 +253,11 @@ public class ApiController {
     @GetMapping("/patients/{patientId}/history")
     List<Map<String, Object>> patientHistory(@PathVariable long patientId, Authentication auth) {
         assertCanReadPatient(patientId, auth);
+        var patientRows = jdbc.queryForList("SELECT name FROM patient WHERE id = ?", patientId);
+        String patientName = patientRows.isEmpty() ? String.valueOf(patientId) : String.valueOf(patientRows.get(0).get("name"));
+        auditLog.log(auth, "VIEW_SENSITIVE", "patient", patientId,
+            "查看" + patientName + "的咨询历史",
+            null, null, "查阅既往咨询记录");
         return jdbc.queryForList("""
             SELECT vr.id, vr.visit_time, vr.diagnosis_summary, vr.treatment_note, vr.next_plan,
                    d.name AS doctor_name
@@ -315,10 +394,65 @@ public class ApiController {
         return isBlank(value) ? null : value.trim();
     }
 
+    private Long resolvePatientId(Map<String, Object> user, Long requestedPatientId) {
+        String role = (String) user.get("role");
+        if ("PATIENT".equals(role)) {
+            var rows = jdbc.queryForList("SELECT id FROM patient WHERE user_id = ?", user.get("id"));
+            if (rows.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "当前账号未绑定来访者档案");
+            }
+            return ((Number) rows.get(0).get("id")).longValue();
+        }
+        if ("ADMIN".equals(role)) {
+            if (requestedPatientId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "管理员安排预约时必须指定来访者");
+            }
+            return requestedPatientId;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份不能提交预约申请");
+    }
+
+    @GetMapping("/admin/audit-logs")
+    List<Map<String, Object>> auditLogs(
+            @RequestParam(defaultValue = "") String operationType,
+            @RequestParam(defaultValue = "") String targetType,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "100") int limit) {
+        return auditLog.queryLogs(operationType, targetType, limit, offset);
+    }
+
+    @GetMapping("/admin/audit-logs/count")
+    Map<String, Object> auditLogsCount(
+            @RequestParam(defaultValue = "") String operationType,
+            @RequestParam(defaultValue = "") String targetType) {
+        return Map.of("total", auditLog.countLogs(operationType, targetType));
+    }
+
+    @GetMapping("/admin/audit-logs/{id}")
+    Map<String, Object> auditLogDetail(@PathVariable long id) {
+        var log = auditLog.getLogDetail(id);
+        if (log.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "审计日志不存在");
+        }
+        return log;
+    }
+
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/health")
     Map<String, String> health() {
         return Map.of("status", "ok");
+    }
+
+    private Authentication authForUsername(String username) {
+        return new Authentication() {
+            @Override public String getName() { return username; }
+            @Override public java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() { return List.of(); }
+            @Override public Object getCredentials() { return null; }
+            @Override public Object getDetails() { return null; }
+            @Override public Object getPrincipal() { return username; }
+            @Override public boolean isAuthenticated() { return true; }
+            @Override public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
+        };
     }
 
     private Map<String, Object> sessionPayload(Map<String, Object> user) {
@@ -372,6 +506,7 @@ public class ApiController {
                 nav("visitRecords", "咨询记录"),
                 nav("users", "系统用户"),
                 nav("messages", "站内信箱"),
+                nav("auditLogs", "审计日志"),
                 nav("statistics", "数据统计")
             );
         }
@@ -527,6 +662,15 @@ public class ApiController {
     }
 
     record LoginRequest(String username, String password) {}
+
+    record AppointmentCreateRequest(
+        Long patientId,
+        Long doctorId,
+        String topic,
+        String appointmentTime,
+        String location,
+        String reason
+    ) {}
 
     record ProfileUpdateRequest(
         String phone,

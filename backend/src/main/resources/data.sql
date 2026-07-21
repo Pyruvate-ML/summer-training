@@ -33,3 +33,8 @@ INSERT INTO site_message(sender_id, receiver_id, title, content, is_read) VALUES
   (1, 2, '测试邮件1', '测试能不能正常收邮件', 0),
   (2, 4, '？', '你人呢', 1),
   (4, 2, '。', '我懒得来了', 1);
+
+INSERT INTO audit_log(operator_id, operator_name, operation_type, target_type, target_id, target_description, old_value, new_value, reason, ip_address, created_at) VALUES
+  (1, '系统管理员', 'LOGIN', 'user', 1, '系统管理员登录系统', NULL, NULL, NULL, '127.0.0.1', '2026-07-21 08:30:00'),
+  (1, '系统管理员', 'VIEW_SENSITIVE', 'patient', 1, '查看陈同学的咨询历史', NULL, NULL, '查看评估等级详情', '127.0.0.1', '2026-07-21 08:32:00'),
+  (4, '陈同学', 'CREATE_APPOINTMENT', 'appointment', 2, '陈同学提交预约申请', NULL, '{"topic":"宿舍关系","status":"静候确认"}', '希望预约一次个体咨询', '127.0.0.1', '2026-07-21 09:10:00');

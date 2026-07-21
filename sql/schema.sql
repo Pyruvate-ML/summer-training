@@ -10,6 +10,7 @@ USE xinqiao_counseling;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS visit_record;
 DROP TABLE IF EXISTS appointment;
+DROP TABLE IF EXISTS audit_log;
 DROP TABLE IF EXISTS patient;
 DROP TABLE IF EXISTS doctor;
 DROP TABLE IF EXISTS user_profile;
@@ -121,6 +122,25 @@ CREATE TABLE site_message (
   CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES app_user(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE audit_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  operator_id BIGINT NOT NULL,
+  operator_name VARCHAR(64) NOT NULL,
+  operation_type VARCHAR(64) NOT NULL COMMENT 'LOGIN/UPDATE_PROFILE/VIEW_SENSITIVE/CREATE_APPOINTMENT',
+  target_type VARCHAR(64) NOT NULL COMMENT 'user/user_profile/patient/appointment',
+  target_id BIGINT,
+  target_description VARCHAR(255),
+  old_value TEXT,
+  new_value TEXT,
+  reason VARCHAR(500),
+  ip_address VARCHAR(64),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_audit_operator (operator_id),
+  INDEX idx_audit_type (operation_type),
+  INDEX idx_audit_target (target_type, target_id),
+  INDEX idx_audit_time (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO app_user(username, password_hash, display_name, role) VALUES
   ('admin', '$2a$10$9Gl09eKn08pXyQIXfK0IQ.Ot5nYlUCj8Cj/dasR5D4LVaqTrKG7DS', '系统管理员', 'ADMIN'),
   ('doctor_zhang', '$2a$10$UNZ8wbkyhMbDoCyLVGOSTODR5ee9hbkb1tTg7FdyqBF0GMlyhcM9e', '张明悦', 'DOCTOR'),
@@ -156,3 +176,8 @@ INSERT INTO site_message(sender_id, receiver_id, title, content, is_read) VALUES
   (1, 2, '测试邮件1', '测试能不能正常收邮件', 0),
   (2, 4, '？', '你人呢', 1),
   (4, 2, '。', '我懒得来了', 1);
+
+INSERT INTO audit_log(operator_id, operator_name, operation_type, target_type, target_id, target_description, old_value, new_value, reason, ip_address, created_at) VALUES
+  (1, '系统管理员', 'LOGIN', 'user', 1, '系统管理员登录系统', NULL, NULL, NULL, '127.0.0.1', '2026-07-21 08:30:00'),
+  (1, '系统管理员', 'VIEW_SENSITIVE', 'patient', 1, '查看陈同学的咨询历史', NULL, NULL, '查看评估等级详情', '127.0.0.1', '2026-07-21 08:32:00'),
+  (4, '陈同学', 'CREATE_APPOINTMENT', 'appointment', 2, '陈同学提交预约申请', NULL, '{"topic":"宿舍关系","status":"静候确认"}', '希望预约一次个体咨询', '127.0.0.1', '2026-07-21 09:10:00');
