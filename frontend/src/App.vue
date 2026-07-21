@@ -115,6 +115,16 @@
         />
 
         <DataTable
+          v-else-if="currentPage === 'auditLogs'"
+          title="审计日志"
+          eyebrow="AUDIT"
+          :columns="auditLogColumns"
+          :rows="auditLogs"
+          :loading="loading"
+          @refresh="loadWorkspaceData"
+        />
+
+        <DataTable
           v-else-if="currentPage === 'users'"
           title="系统用户"
           eyebrow="RBAC"
@@ -163,6 +173,7 @@ const patients = ref([]);
 const doctors = ref([]);
 const visitRecords = ref([]);
 const users = ref([]);
+const auditLogs = ref([]);
 const icons = {
   logoPeople,
   overview,
@@ -214,6 +225,14 @@ const recordColumns = [
   { key: 'next_plan', label: '下一步计划' }
 ];
 
+const auditLogColumns = [
+  { key: 'created_at', label: '操作时间' },
+  { key: 'operator_name', label: '操作人' },
+  { key: 'operation_type', label: '操作类型', badge: true },
+  { key: 'target_description', label: '操作对象' },
+  { key: 'reason', label: '操作原因' }
+];
+
 const userColumns = [
   { key: 'username', label: '账号' },
   { key: 'display_name', label: '显示名' },
@@ -255,6 +274,7 @@ async function loadWorkspaceData() {
     ];
     if (session.value.user.role === 'ADMIN') {
       tasks.push(apiGet('/api/admin/users', session.value).then(data => { users.value = data; }));
+      tasks.push(apiGet('/api/admin/audit-logs', session.value).then(data => { auditLogs.value = data; }));
     }
     await Promise.all(tasks);
   } finally {
@@ -278,6 +298,7 @@ function navIcon(key) {
     visitRecords: icons.clipboard,
     users: icons.sectionTeam,
     statistics: icons.leaf,
+    auditLogs: icons.shield,
     followPlans: icons.heart,
     profile: icons.logoPeople
   };

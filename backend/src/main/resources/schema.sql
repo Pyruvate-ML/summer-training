@@ -96,3 +96,25 @@ CREATE TABLE visit_record (
   CONSTRAINT fk_visit_doctor FOREIGN KEY (doctor_id) REFERENCES doctor(id),
   CONSTRAINT fk_visit_appointment FOREIGN KEY (appointment_id) REFERENCES appointment(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- 操作日志与审计追踪表
+DROP TABLE IF EXISTS audit_log;
+CREATE TABLE audit_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  operator_id BIGINT NOT NULL,
+  operator_name VARCHAR(64) NOT NULL,
+  operation_type VARCHAR(64) NOT NULL COMMENT 'VIEW_SENSITIVE/MODIFY_RISK_LEVEL/MODIFY_APPOINTMENT/MODIFY_VISIT_RECORD/MODIFY_USER_PERMISSION/EXPORT_DATA/LOGIN/UPDATE_PROFILE',
+  target_type VARCHAR(64) NOT NULL COMMENT '操作对象类型：patient/appointment/visit_record/user_profile/user',
+  target_id BIGINT,
+  target_description VARCHAR(255) COMMENT '操作对象描述（如：陈同学的档案）',
+  old_value TEXT COMMENT '修改前内容（JSON 或文本）',
+  new_value TEXT COMMENT '修改后内容（JSON 或文本）',
+  reason VARCHAR(500) COMMENT '操作原因',
+  ip_address VARCHAR(64),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_audit_operator (operator_id),
+  INDEX idx_audit_type (operation_type),
+  INDEX idx_audit_target (target_type, target_id),
+  INDEX idx_audit_time (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

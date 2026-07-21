@@ -220,7 +220,7 @@
         <div class="flex min-h-0 flex-1">
             <aside class="wood w-[clamp(240px,19vw,320px)] border-0 border-r-4 border-[var(--wood-dark)] p-[clamp(14px,1.8vw,26px)] flex flex-col">
                 <nav class="space-y-4">
-                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key">
+                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="setCurrentPage(item.key)">
                         <img class="asset w-10 h-10 shrink-0" :src="navIcon(item.key)" alt="">
                         <span class="truncate">{{ item.label }}</span>
                     </button>
@@ -326,14 +326,52 @@
                 <section v-show="currentPage !== 'dashboard'" class="space-y-5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-[clamp(32px,3vw,52px)] font-bold">{{ currentNavLabel }}</h3>
-                        <button v-if="canShowPrimaryAction" class="pixel-btn px-5 py-3 text-xl font-bold">{{ session.workspace.primaryAction }}</button>
+                        <button v-if="canShowPrimaryAction" class="pixel-btn px-5 py-3 text-xl font-bold" @click="handlePrimaryAction">{{ session.workspace.primaryAction }}</button>
                     </div>
 
-                    <data-table v-if="currentPage === 'appointments'" title="预约列表" :rows="visibleAppointments" :columns="appointmentColumns" :assets="assets"></data-table>
+                    <article v-if="currentPage === 'bookings'" class="paper p-6">
+                        <h4 class="text-3xl font-bold mb-5 flex items-center gap-3">
+                            <img class="asset w-10 h-10" :src="assets.icons.plus" alt="">
+                            提交预约申请
+                        </h4>
+                        <form class="grid md:grid-cols-2 gap-5" @submit.prevent="submitBooking">
+                            <label class="block">
+                                <span class="block text-xl font-bold mb-2">咨询师</span>
+                                <select v-model.number="bookingForm.doctorId" class="pixel-input w-full h-14 px-4 text-xl outline-none">
+                                    <option :value="1">张明悦</option>
+                                    <option :value="2">林思远</option>
+                                </select>
+                            </label>
+                            <label class="block">
+                                <span class="block text-xl font-bold mb-2">预约时间</span>
+                                <input v-model="bookingForm.appointmentTime" class="pixel-input w-full h-14 px-4 text-xl outline-none" type="datetime-local">
+                            </label>
+                            <label class="block">
+                                <span class="block text-xl font-bold mb-2">咨询主题</span>
+                                <input v-model.trim="bookingForm.topic" class="pixel-input w-full h-14 px-4 text-xl outline-none" placeholder="例如：考试焦虑 / 人际关系">
+                            </label>
+                            <label class="block">
+                                <span class="block text-xl font-bold mb-2">地点/方式</span>
+                                <input v-model.trim="bookingForm.location" class="pixel-input w-full h-14 px-4 text-xl outline-none" placeholder="咨询室1 / 在线咨询">
+                            </label>
+                            <label class="block md:col-span-2">
+                                <span class="block text-xl font-bold mb-2">预约原因</span>
+                                <textarea v-model.trim="bookingForm.reason" class="pixel-input w-full min-h-28 p-4 text-xl outline-none resize-none" placeholder="简单说明希望咨询的问题，便于咨询师确认"></textarea>
+                            </label>
+                            <div class="md:col-span-2 flex items-center gap-4">
+                                <button class="pixel-btn px-6 py-3 text-xl font-bold" :disabled="isBooking">
+                                    {{ isBooking ? '提交中...' : '提交预约申请' }}
+                                </button>
+                                <span v-if="bookingMessage" class="text-xl font-bold" :class="bookingSuccess ? 'text-[var(--green)]' : 'text-[var(--red)]'">{{ bookingMessage }}</span>
+                            </div>
+                        </form>
+                    </article>
+                    <data-table v-else-if="currentPage === 'appointments'" title="预约列表" :rows="visibleAppointments" :columns="appointmentColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'patients'" title="来访者档案" :rows="visiblePatients" :columns="patientColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'doctors'" title="咨询师管理" :rows="doctorRows" :columns="doctorColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'visitRecords'" title="咨询记录" :rows="visibleRecords" :columns="recordColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'users'" title="系统用户" :rows="userRows" :columns="userColumns" :assets="assets"></data-table>
+                    <data-table v-else-if="currentPage === 'auditLogs' || currentNavLabel === '审计日志'" title="审计日志" :rows="auditLogs" :columns="auditLogColumns" :assets="assets"></data-table>
                     <data-table v-else-if="currentPage === 'followPlans'" title="跟进计划" :rows="followPlans" :columns="followColumns" :assets="assets"></data-table>
                     <section v-else-if="currentPage === 'profile'" class="grid xl:grid-cols-3 gap-5">
                         <article class="paper p-6 xl:col-span-1">
@@ -399,7 +437,8 @@
                         </article>
                     </section>
                     <article v-else class="paper p-8 text-2xl">
-                        <p>{{ currentNavLabel }}功能已按当前身份开放入口，后续可继续接具体表单和接口。</p>
+                        <data-table v-if="currentNavLabel === '审计日志'" title="审计日志" :rows="auditLogs" :columns="auditLogColumns" :assets="assets"></data-table>
+                        <p v-else>{{ currentNavLabel }}功能已按当前身份开放入口，后续可继续接具体表单和接口。</p>
                     </article>
                 </section>
             </main>
@@ -413,7 +452,7 @@
 </div>
 
 <script>
-const { createApp, ref, computed } = Vue;
+const { createApp, ref, computed, onMounted } = Vue;
 
 const assets = {
     icons: {
@@ -537,6 +576,9 @@ const DataTable = {
                         </tr>
                     </thead>
                     <tbody>
+                        <tr v-if="rows.length === 0" class="border-t-2 border-dashed border-[#d4a263]">
+                            <td :colspan="columns.length" class="px-4 py-8 text-xl text-center text-[var(--muted)]">暂无数据</td>
+                        </tr>
                         <tr v-for="(row, index) in rows" :key="index" class="border-t-2 border-dashed border-[#d4a263] hover:bg-[#fff7df]">
                             <td v-for="column in columns" :key="column.key" class="table-cell px-4 py-3 text-lg border-r-2 border-dashed border-[#d4a263] last:border-r-0" :class="column.type ? 'w-[8.2rem] text-center' : ''">
                                 <span v-if="column.type === 'status'" class="tag status-badge" :class="statusClass(row[column.key])">{{ row[column.key] }}</span>
@@ -551,8 +593,8 @@ const DataTable = {
     `,
     methods: {
         statusClass(status) {
-            if (status === '待确认' || status === '待填写' || status === '待进行') return 'orange';
-            if (status === '已确认' || status === '已完成' || status === '跟进中' || status === '正常') return 'green';
+            if (status === '待确认' || status === '静候确认' || status === '待填写' || status === '待进行') return 'orange';
+            if (status === '已确认' || status === '已排定' || status === '咨询已结束' || status === '已完成' || status === '跟进中' || status === '正常') return 'green';
             return 'blue';
         },
         levelClass(level) {
@@ -572,6 +614,16 @@ createApp({
         const showPassword = ref(false);
         const isLoggingIn = ref(false);
         const loginError = ref('');
+        const isBooking = ref(false);
+        const bookingMessage = ref('');
+        const bookingSuccess = ref(false);
+        const bookingForm = ref({
+            doctorId: 1,
+            topic: '考试焦虑',
+            appointmentTime: '2026-07-22T14:00',
+            location: '心桥心理咨询室',
+            reason: '希望预约一次个体咨询'
+        });
 
         const demoAccounts = [
             { roleName: '管理员', username: 'admin', password: 'admin123' },
@@ -611,6 +663,8 @@ createApp({
             { patient: '李同学', time: '2024-05-10 10:00', summary: '人际冲突与沟通策略探讨', status: '待填写' },
             { patient: '陈同学', time: '05月12日', summary: '探索压力来源与情绪识别', status: '已完成' }
         ]);
+
+        const auditLogs = ref([]);
 
         const followPlans = ref([
             { patient: '陈同学', plan: '情绪管理计划', next: '情绪识别练习', time: '明天 10:00' },
@@ -658,6 +712,13 @@ createApp({
                 { key: 'next', label: '下一步' },
                 { key: 'time', label: '时间' }
             ],
+            auditLog: [
+                { key: 'created_at', label: '操作时间' },
+                { key: 'operator_name', label: '操作人' },
+                { key: 'operation_type', label: '操作类型', type: 'status' },
+                { key: 'target_description', label: '操作对象' },
+                { key: 'reason', label: '操作原因' }
+            ],
             patientRecord: [
                 { key: 'time', label: '日期' },
                 { key: 'summary', label: '摘要' },
@@ -695,6 +756,7 @@ createApp({
         const userColumns = columns.user;
         const recordColumns = columns.record;
         const followColumns = columns.follow;
+        const auditLogColumns = columns.auditLog;
         const patientRecordColumns = columns.patientRecord;
 
         const focusPatients = computed(() => patients.value.filter(row => row.level !== '低'));
@@ -774,6 +836,88 @@ createApp({
             loginForm.value = { username: account.username, password: account.password };
         };
 
+        const authHeaderForSession = () => {
+            if (session.value?.authHeader) return session.value.authHeader;
+            const account = demoAccounts.find(item => item.username === session.value?.user?.username);
+            if (!account) return '';
+            return `Basic ${btoa(`${account.username}:${account.password}`)}`;
+        };
+
+        const normalizeAuditLog = (row) => ({
+            ...row,
+            created_at: String(row.created_at || '').replace('T', ' '),
+            reason: row.reason || '-'
+        });
+
+        const normalizeAppointment = (row) => ({
+            id: row.id,
+            time: String(row.appointment_time || '').replace('T', ' ').slice(0, 16),
+            counselor: row.doctor_name || '-',
+            patient: row.patient_name || '-',
+            type: row.topic || '-',
+            status: row.status || '-',
+            place: row.location || '-'
+        });
+
+        const loadAppointments = async () => {
+            if (!session.value) return;
+            try {
+                const response = await fetch('http://localhost:8080/api/appointments', {
+                    headers: { Authorization: authHeaderForSession() }
+                });
+                if (!response.ok) throw new Error('预约列表接口请求失败');
+                appointments.value = (await response.json()).map(normalizeAppointment);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const loadAuditLogs = async () => {
+            if (session.value?.user?.role !== 'ADMIN') return;
+            try {
+                const response = await fetch('http://localhost:8080/api/admin/audit-logs', {
+                    headers: { Authorization: authHeaderForSession() }
+                });
+                if (!response.ok) throw new Error('审计日志接口请求失败');
+                auditLogs.value = (await response.json()).map(normalizeAuditLog);
+            } catch (error) {
+                auditLogs.value = [];
+                console.error(error);
+            }
+        };
+
+        const submitBooking = async () => {
+            bookingMessage.value = '';
+            bookingSuccess.value = false;
+            if (!bookingForm.value.topic || !bookingForm.value.appointmentTime) {
+                bookingMessage.value = '请填写咨询主题和预约时间';
+                return;
+            }
+            isBooking.value = true;
+            try {
+                const response = await fetch('http://localhost:8080/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: authHeaderForSession()
+                    },
+                    body: JSON.stringify(bookingForm.value)
+                });
+                if (!response.ok) throw new Error('预约提交失败');
+                const result = await response.json();
+                bookingSuccess.value = true;
+                bookingMessage.value = result.message || '预约申请已提交';
+                await loadAppointments();
+                await loadAuditLogs();
+                currentPage.value = 'appointments';
+            } catch (error) {
+                bookingMessage.value = error.message || '预约提交失败';
+                console.error(error);
+            } finally {
+                isBooking.value = false;
+            }
+        };
+
         const login = async () => {
             loginError.value = '';
             isLoggingIn.value = true;
@@ -785,6 +929,7 @@ createApp({
                 });
                 if (!response.ok) throw new Error('账号或密码错误');
                 session.value = await response.json();
+                session.value.authHeader = `Basic ${btoa(`${loginForm.value.username}:${loginForm.value.password}`)}`;
             } catch (error) {
                 const fallback = fallbackSessions[loginForm.value.username];
                 if (!fallback || !Object.values(fallbackSessions).some(item => item.user.username === loginForm.value.username)) {
@@ -804,6 +949,8 @@ createApp({
                 if (session.value) {
                     currentPage.value = session.value.navigation[0].key;
                     localStorage.setItem('xinqiao-session', JSON.stringify(session.value));
+                    await loadAppointments();
+                    await loadAuditLogs();
                 }
                 isLoggingIn.value = false;
             }
@@ -815,6 +962,23 @@ createApp({
             localStorage.removeItem('xinqiao-session');
         };
 
+        const setCurrentPage = async (key) => {
+            currentPage.value = key;
+            if (key === 'appointments') await loadAppointments();
+            if (key === 'auditLogs') await loadAuditLogs();
+            if (key === 'bookings') bookingMessage.value = '';
+        };
+
+        const handlePrimaryAction = async () => {
+            if (currentPage.value === 'bookings') {
+                await submitBooking();
+                return;
+            }
+            if (session.value?.user?.role === 'PATIENT') {
+                await setCurrentPage('bookings');
+            }
+        };
+
         const navIcon = (key) => {
             const map = {
                 dashboard: assets.icons.overview,
@@ -823,6 +987,7 @@ createApp({
                 patients: assets.icons.archive,
                 visitRecords: assets.icons.clipboard,
                 users: assets.icons.user,
+                auditLogs: assets.icons.shield,
                 statistics: assets.icons.chart,
                 followPlans: assets.icons.leaf,
                 profile: assets.icons.user,
@@ -847,6 +1012,11 @@ createApp({
             return 'text-[clamp(32px,3vw,50px)]';
         };
 
+        onMounted(async () => {
+            await loadAppointments();
+            await loadAuditLogs();
+        });
+
         return {
             assets,
             session,
@@ -855,6 +1025,10 @@ createApp({
             showPassword,
             isLoggingIn,
             loginError,
+            isBooking,
+            bookingMessage,
+            bookingSuccess,
+            bookingForm,
             demoAccounts,
             navItems,
             dashboardCards,
@@ -866,6 +1040,7 @@ createApp({
             focusPatients,
             doctorRows,
             userRows,
+            auditLogs,
             doctorAppointments,
             doctorPatients,
             doctorRecords,
@@ -880,6 +1055,7 @@ createApp({
             userColumns,
             recordColumns,
             followColumns,
+            auditLogColumns,
             patientRecordColumns,
             profileSummary,
             profileFields,
@@ -890,6 +1066,9 @@ createApp({
             fillAccount,
             login,
             logout,
+            setCurrentPage,
+            handlePrimaryAction,
+            submitBooking,
             navIcon,
             cardIcon,
             cardValueClass
