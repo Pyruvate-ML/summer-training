@@ -220,7 +220,7 @@
         <div class="flex min-h-0 flex-1">
             <aside class="wood w-[clamp(240px,19vw,320px)] border-0 border-r-4 border-[var(--wood-dark)] p-[clamp(14px,1.8vw,26px)] flex flex-col">
                 <nav class="space-y-4">
-                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key; if(item.key === 'messages') fetchMessages()">
+                    <button v-for="item in navItems" :key="item.key" class="nav-btn w-full min-h-16 px-4 py-3 flex items-center gap-3 text-[clamp(17px,1.25vw,24px)] font-bold" :class="{ active: currentPage === item.key }" @click="currentPage = item.key; if(item.key === 'messages') fetchMessages(); if(item.key === 'profile') fetchProfile();">
                         <img class="asset w-10 h-10 shrink-0" :src="navIcon(item.key)" alt="">
                         <span class="truncate">{{ item.label }}</span>
                     </button>
@@ -415,24 +415,49 @@
                         </article>
 
                         <article class="paper p-6 xl:col-span-2">
-                            <div class="flex items-center justify-between mb-5">
-                                <h4 class="text-3xl font-bold flex items-center gap-3">
-                                    <img class="asset w-10 h-10" :src="assets.icons.user" alt="">
-                                    个人资料编辑
-                                </h4>
-                                <button class="pixel-btn px-5 py-3 text-xl font-bold">保存资料</button>
-                            </div>
-                            <div class="grid md:grid-cols-2 gap-5">
-                                <label v-for="field in profileFields" :key="field.label" class="block">
-                                    <span class="block text-xl font-bold mb-2">{{ field.label }}</span>
-                                    <input class="pixel-input w-full h-14 px-4 text-xl outline-none" :value="field.value">
-                                </label>
-                            </div>
-                            <div class="mt-6">
-                                <p class="text-xl font-bold mb-2">个人说明</p>
-                                <textarea class="pixel-input w-full min-h-28 p-4 text-xl outline-none resize-none" :value="profileNote"></textarea>
-                            </div>
-                        </article>
+    <div class="flex items-center justify-between mb-5">
+        <h4 class="text-3xl font-bold flex items-center gap-3">
+            <img class="asset w-10 h-10" :src="assets.icons.user" alt="">
+            个人资料编辑
+        </h4>
+        <button class="pixel-btn px-5 py-3 text-xl font-bold" @click="saveProfile" :disabled="isSavingProfile">
+            {{ isSavingProfile ? '正在保存...' : '保存资料' }}
+        </button>
+    </div>
+    
+    <!-- 使用 v-model 绑定前后端对应的字段 -->
+    <div class="grid md:grid-cols-2 gap-5 text-xl">
+        <label class="block">
+            <span class="block font-bold mb-2">联系电话</span>
+            <input v-model="profileForm.phone" class="pixel-input w-full h-14 px-4 outline-none" placeholder="输入电话号码">
+        </label>
+        <label class="block">
+            <span class="block font-bold mb-2">邮箱地址</span>
+            <input v-model="profileForm.email" type="email" class="pixel-input w-full h-14 px-4 outline-none" placeholder="输入邮箱地址">
+        </label>
+        <label class="block">
+            <span class="block font-bold mb-2">所属部门 / 学院</span>
+            <input v-model="profileForm.department" class="pixel-input w-full h-14 px-4 outline-none" placeholder="输入部门或学院名称">
+        </label>
+        <label class="block">
+            <span class="block font-bold mb-2">办公地点 / 宿舍号</span>
+            <input v-model="profileForm.officeLocation" class="pixel-input w-full h-14 px-4 outline-none" placeholder="输入物理位置">
+        </label>
+        <label class="block">
+            <span class="block font-bold mb-2">紧急联系人</span>
+            <input v-model="profileForm.emergencyContact" class="pixel-input w-full h-14 px-4 outline-none" placeholder="姓名及联系方式">
+        </label>
+        <label class="block">
+            <span class="block font-bold mb-2">咨询偏好备注</span>
+            <input v-model="profileForm.preferenceNote" class="pixel-input w-full h-14 px-4 outline-none" placeholder="如：倾向下午时间">
+        </label>
+    </div>
+    
+    <div class="mt-6">
+        <p class="text-xl font-bold mb-2">个人说明 (Bio)</p>
+        <textarea v-model="profileForm.bio" class="pixel-input w-full min-h-28 p-4 text-xl outline-none resize-none" placeholder="介绍一下你自己..."></textarea>
+    </div>
+</article>
 
                         <article class="paper p-6 xl:col-span-3">
                             <h4 class="text-3xl font-bold mb-4 flex items-center gap-3">
@@ -629,7 +654,7 @@ createApp({
         const showPassword = ref(false);
         const isLoggingIn = ref(false);
         const loginError = ref('');
-        const apiBase = 'http://localhost:8080';
+        const apiBase = 'http://localhost:11234';
         const messageTab = ref('inbox');
         const showCompose = ref(false);
         const sending = ref(false);
@@ -928,6 +953,60 @@ createApp({
             if (value.length >= 4) return 'text-[clamp(28px,2.4vw,42px)] break-words';
             return 'text-[clamp(32px,3vw,50px)]';
         };
+        const profileForm = ref({
+            phone: '',
+            email: '',
+            department: '',
+            officeLocation: '',
+            emergencyContact: '',
+            preferenceNote: '',
+            bio: ''
+        });
+        const isSavingProfile = ref(false);
+
+        const fetchProfile = async () => {
+            if (!session.value) return;
+            try {
+                const response = await fetch(`${apiBase}/api/profile`, {
+                    headers: { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.profile) {
+                        profileForm.value = { ...profileForm.value, ...data.profile };
+                    }
+                }
+            } catch (e) {
+                console.error("加载个人资料失败", e);
+            }
+        };
+        const saveProfile = async () => {
+            if (!session.value) return;
+            isSavingProfile.value = true;
+            try {
+                const response = await fetch(`${apiBase}/api/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}`
+                    },
+                    body: JSON.stringify(profileForm.value)
+                });
+                
+                if (response.ok) {
+                    alert('资料保存成功');
+                    await fetchProfile();
+                } else {
+                    const err = await response.json();
+                    alert(`保存失败: ${err.message || '未知错误'}`);
+                }
+            } catch (error) {
+                alert('网络错误，保存失败。');
+                console.error(error);
+            } finally {
+                isSavingProfile.value = false;
+            }
+        };
         const fetchMessages = async () => {
             if (!session.value) return;
             const headers = { 'Authorization': `Basic ${btoa(loginForm.value.username + ':' + loginForm.value.password)}` };
@@ -1046,7 +1125,8 @@ createApp({
             logout,
             navIcon,
             cardIcon,
-            cardValueClass, messageTab, messages, sentMessages, showCompose, composeForm, readingMessage, sending, messageColumns, sentMessageColumns, openMessage, closeMessage, submitMessage, fetchMessages
+            cardValueClass, messageTab, messages, sentMessages, showCompose, composeForm, readingMessage, sending, messageColumns, sentMessageColumns, openMessage, closeMessage, submitMessage, fetchMessages,
+            profileForm, isSavingProfile, fetchProfile, saveProfile,
         };
     }
 }).mount('#app');
