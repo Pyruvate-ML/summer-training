@@ -8,7 +8,7 @@ spring:
     url: ${XINQIAO_DB_URL:${MYSQL_URL:jdbc:mysql://localhost:3306/xinqiao_counseling?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${XINQIAO_DB_USERNAME:${MYSQL_USERNAME:root}}
-    password: ${XINQIAO_DB_PASSWORD:${MYSQL_PASSWORD:}}
+    password: ${XINQIAO_DB_PASSWORD:${MYSQL_PASSWORD:gwt525201gwt}}
   sql:
     init:
       mode: ${XINQIAO_SQL_INIT_MODE:${MYSQL_INIT_MODE:always}}

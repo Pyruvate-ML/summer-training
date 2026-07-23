@@ -17,6 +17,11 @@ public class AuditLogService {
 
     public void log(Authentication auth, String operationType, String targetType, Long targetId,
                     String targetDescription, String oldValue, String newValue, String reason) {
+        log(auth, operationType, targetType, targetId, targetDescription, oldValue, newValue, reason, null);
+    }
+
+    public void log(Authentication auth, String operationType, String targetType, Long targetId,
+                    String targetDescription, String oldValue, String newValue, String reason, String ipAddress) {
         long operatorId = 0;
         String operatorName = "system";
 
@@ -49,7 +54,7 @@ public class AuditLogService {
             truncate(oldValue, 65535),
             truncate(newValue, 65535),
             truncate(reason, 500),
-            null
+            truncate(ipAddress, 64)
         );
     }
 

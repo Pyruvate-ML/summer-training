@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,12 +27,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/health", "/api/auth/login").permitAll()
+                .requestMatchers("/api/health", "/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/**").hasAnyRole("ADMIN", "DOCTOR", "PATIENT")
+                .requestMatchers("/api/**").hasAnyRole("ADMIN", "DOCTOR", "PATIENT", "COUNSELOR")
                 .anyRequest().permitAll()
             )
-            .httpBasic(Customizer.withDefaults());
+            .httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"message\":\"账号或密码错误或登录已失效\"}");
+            }));
         return http.build();
     }
 

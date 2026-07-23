@@ -2,10 +2,15 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS visit_record;
 DROP TABLE IF EXISTS appointment;
 DROP TABLE IF EXISTS audit_log;
+DROP TABLE IF EXISTS patient_counselor;
 DROP TABLE IF EXISTS patient;
 DROP TABLE IF EXISTS doctor;
+DROP TABLE IF EXISTS counselor;
 DROP TABLE IF EXISTS user_profile;
 DROP TABLE IF EXISTS site_message;
+DROP TABLE IF EXISTS role_permission;
+DROP TABLE IF EXISTS permission;
+DROP TABLE IF EXISTS rbac_role;
 DROP TABLE IF EXISTS app_user;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -14,11 +19,32 @@ CREATE TABLE app_user (
   username VARCHAR(64) NOT NULL UNIQUE,
   password_hash VARCHAR(100) NOT NULL,
   display_name VARCHAR(64) NOT NULL,
-  role VARCHAR(32) NOT NULL COMMENT 'ADMIN/DOCTOR/PATIENT',
+  role VARCHAR(32) NOT NULL COMMENT 'ADMIN/DOCTOR/PATIENT/COUNSELOR',
   enabled TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_app_user_role (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE rbac_role (
+  code VARCHAR(32) PRIMARY KEY,
+  name VARCHAR(64) NOT NULL,
+  description VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE permission (
+  code VARCHAR(64) PRIMARY KEY,
+  name VARCHAR(64) NOT NULL,
+  module VARCHAR(64) NOT NULL,
+  description VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE role_permission (
+  role_code VARCHAR(32) NOT NULL,
+  permission_code VARCHAR(64) NOT NULL,
+  PRIMARY KEY (role_code, permission_code),
+  CONSTRAINT fk_role_permission_role FOREIGN KEY (role_code) REFERENCES rbac_role(code),
+  CONSTRAINT fk_role_permission_permission FOREIGN KEY (permission_code) REFERENCES permission(code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE user_profile (
@@ -48,6 +74,19 @@ CREATE TABLE doctor (
   CONSTRAINT fk_doctor_user FOREIGN KEY (user_id) REFERENCES app_user(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE counselor (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL UNIQUE,
+  name VARCHAR(64) NOT NULL,
+  department VARCHAR(128),
+  email VARCHAR(128),
+  phone VARCHAR(32),
+  office_location VARCHAR(128),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_counselor_user FOREIGN KEY (user_id) REFERENCES app_user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE patient (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id BIGINT NOT NULL UNIQUE,
@@ -62,6 +101,20 @@ CREATE TABLE patient (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_patient_level (assessment_level),
   CONSTRAINT fk_patient_user FOREIGN KEY (user_id) REFERENCES app_user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE patient_counselor (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  patient_id BIGINT NOT NULL,
+  counselor_id BIGINT NOT NULL,
+  relation_type VARCHAR(64) NOT NULL DEFAULT '辅导员',
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_patient_counselor (patient_id, counselor_id),
+  INDEX idx_patient_counselor_patient (patient_id),
+  INDEX idx_patient_counselor_counselor (counselor_id),
+  CONSTRAINT fk_patient_counselor_patient FOREIGN KEY (patient_id) REFERENCES patient(id),
+  CONSTRAINT fk_patient_counselor_counselor FOREIGN KEY (counselor_id) REFERENCES counselor(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE appointment (

@@ -116,6 +116,7 @@ GET /api/patients
 GET /api/patients/{patientId}/history
 GET /api/visit-records
 GET /api/admin/dashboard
+GET /api/admin/statistics
 ```
 
 调试示例：
@@ -136,3 +137,4 @@ curl -u patient_chen:patient123 http://localhost:8080/api/visit-records
 3. 如果团队决定采用 JWT，可以参考 `origin/day1` 中登录、注册、拦截器和角色注解的实现，再替换当前 HTTP Basic 原型。
 4. 如果后端表结构变化，同步更新 `backend/src/main/resources/schema.sql`、`data.sql` 和本文档接口说明。
 5. 不提交 `target/`、`.idea/`、本地数据库导出或个人环境配置文件。
+6. 敏感接口需要传 `reason`，例如 `/api/patients/{patientId}/history?reason=...`；预约提交也要求填写原因。

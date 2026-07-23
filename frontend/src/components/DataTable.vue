@@ -22,9 +22,9 @@
             <td :colspan="columns.length" class="empty">暂无数据</td>
           </tr>
           <tr v-for="row in rows" v-else :key="row.id || JSON.stringify(row)">
-            <td v-for="column in columns" :key="column.key">
+            <td v-for="column in columns" :key="column.key" @click="$emit('row-click', row)">
               <span v-if="column.badge" class="badge" :class="badgeClass(row[column.key])">{{ row[column.key] }}</span>
-              <span v-else>{{ row[column.key] || '-' }}</span>
+              <span v-else>{{ formatValue(row[column.key]) }}</span>
             </td>
           </tr>
         </tbody>
@@ -42,12 +42,17 @@ defineProps({
   loading: { type: Boolean, default: false }
 });
 
-defineEmits(['refresh']);
+defineEmits(['refresh', 'row-click']);
+
+function formatValue(value) {
+  if (value === null || value === undefined || value === '') return '-';
+  return value;
+}
 
 function badgeClass(value) {
-  if (['静候确认', '关注'].includes(value)) return 'warn';
-  if (['重点'].includes(value)) return 'danger';
-  if (['已排定', '普通'].includes(value)) return 'ok';
+  if (['静候确认', '关注', '未读', '对方未读', '待处理'].includes(value)) return 'warn';
+  if (['重点', '高风险'].includes(value)) return 'danger';
+  if (['已排定', '普通', '已读', '对方已读', '已完成', '咨询已结束'].includes(value)) return 'ok';
   return 'neutral';
 }
 </script>

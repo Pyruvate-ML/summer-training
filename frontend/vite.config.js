@@ -8,7 +8,12 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true
+        changeOrigin: true,
+        configure: proxy => {
+          proxy.on('proxyRes', proxyRes => {
+            delete proxyRes.headers['www-authenticate'];
+          });
+        }
       }
     }
   }
