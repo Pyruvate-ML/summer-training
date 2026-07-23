@@ -46,6 +46,7 @@ defineEmits(['refresh', 'row-click']);
 
 function formatValue(value) {
   if (value === null || value === undefined || value === '') return '-';
+  if (typeof value === 'string') return value.replace('T', ' ');
   return value;
 }
 

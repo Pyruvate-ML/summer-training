@@ -27,7 +27,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/health", "/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers("/api/health", "/api/auth/login", "/api/auth/register", "/api/public/counselors").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").hasAnyRole("ADMIN", "DOCTOR", "PATIENT", "COUNSELOR")
                 .anyRequest().permitAll()

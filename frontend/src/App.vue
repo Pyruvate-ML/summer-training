@@ -28,6 +28,7 @@
           <label><span>学号</span><input v-model.trim="registerForm.studentNo" /></label>
           <label><span>学院</span><input v-model.trim="registerForm.college" /></label>
           <label><span>年级</span><input v-model.trim="registerForm.grade" /></label>
+          <label><span>绑定辅导员</span><select v-model.number="registerForm.counselorId" required><option disabled :value="null">请选择辅导员</option><option v-for="counselor in publicCounselors" :key="counselor.id" :value="counselor.id">{{ counselor.name }} · {{ counselor.department || '学生工作办公室' }}</option></select></label>
           <label class="wide"><span>主要诉求</span><input v-model.trim="registerForm.primaryTopic" placeholder="如：学业压力 / 人际关系 / 情绪困扰" required /></label>
           <button class="pixel-btn wide" type="submit" :disabled="registering">{{ registering ? '创建中...' : '创建来访者账号' }}</button>
           <p v-if="registerError" class="error-text wide">{{ registerError }}</p>
@@ -90,31 +91,71 @@
           </section>
 
           <section v-if="session.user.role === 'ADMIN'" class="overview-grid">
-            <DataTable title="全平台预约列表" eyebrow="Today" :columns="appointmentColumns" :rows="appointments" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="全平台今日预约列表" eyebrow="Today" :columns="appointmentColumns" :rows="dashboardAppointments" :loading="loading" @refresh="loadWorkspaceData" />
             <DataTable title="重点关注来访者列表" eyebrow="Focus" :columns="patientColumns" :rows="focusPatients" :loading="loading" @refresh="loadWorkspaceData" />
             <DataTable title="值班与排班概览" eyebrow="Roster" :columns="doctorColumns" :rows="doctors" :loading="loading" @refresh="loadWorkspaceData" />
             <DataTable title="系统用户概况" eyebrow="Users" :columns="userColumns" :rows="users" :loading="loading" @refresh="loadWorkspaceData" />
           </section>
 
+          <section v-else-if="session.user.role === 'DOCTOR'" class="overview-grid">
+            <DataTable title="今日预约安排" eyebrow="Schedule" :columns="appointmentColumns" :rows="dashboardAppointments" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="我的来访者概览" eyebrow="Patients" :columns="doctorPatientColumns" :rows="doctorPatients" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="待填写咨询记录" eyebrow="Records" :columns="doctorRecordColumns" :rows="doctorRecords" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="跟进计划 / 下一步建议" eyebrow="Follow" :columns="followColumns" :rows="followPlans" :loading="loading" @refresh="loadWorkspaceData" />
+          </section>
+
+          <section v-else-if="session.user.role === 'COUNSELOR'" class="overview-grid">
+            <DataTable title="今日预约安排" eyebrow="Schedule" :columns="appointmentColumns" :rows="dashboardAppointments" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="我的学生概览" eyebrow="Students" :columns="doctorPatientColumns" :rows="doctorPatients" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="重点关注联动" eyebrow="Focus" :columns="doctorPatientColumns" :rows="focusPatients" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="跟进计划 / 下一步建议" eyebrow="Follow" :columns="followColumns" :rows="followPlans" :loading="loading" @refresh="loadWorkspaceData" />
+          </section>
+
           <section v-else-if="session.user.role === 'PATIENT'" class="overview-grid patient-home">
             <article class="paper info-panel">
               <h3><img :src="icons.calendar" alt="" />我的下一次预约详情</h3>
-              <p>预约时间：{{ nextAppointment?.appointment_time || '暂无预约' }}</p>
-              <p>咨询师：{{ nextAppointment?.doctor_name || '-' }}</p>
-              <p>咨询主题：{{ nextAppointment?.topic || '-' }}</p>
+              <p>预约时间：{{ nextAppointmentDetail.time }}</p>
+              <p>咨询类型：{{ nextAppointmentDetail.type }}</p>
+              <p>咨询地点：{{ nextAppointmentDetail.location }}</p>
               <p>预约状态：<span class="badge ok">{{ nextAppointment?.status || '暂无' }}</span></p>
+              <p>备注信息：请提前10分钟到达，放松心情，准时参与。</p>
+              <div class="panel-actions">
+                <button class="pixel-btn" type="button" @click="setCurrentPage('appointments')">查看预约详情</button>
+                <button class="pixel-btn secondary" type="button" @click="setCurrentPage('bookings')">修改或重新预约</button>
+              </div>
             </article>
             <article class="paper info-panel">
               <h3><img :src="icons.team" alt="" />我的咨询师信息</h3>
-              <p>{{ nextAppointment?.doctor_name || doctors[0]?.name || '暂无关联咨询师' }}</p>
-              <p>{{ doctors[0]?.title || '预约后展示咨询师信息' }}</p>
-              <p>{{ doctors[0]?.specialties || '-' }}</p>
+              <div class="counselor-card">
+                <img :src="icons.doctor" alt="" />
+                <div>
+                  <p><strong>{{ nextAppointment?.doctor_name || doctors[0]?.name || '暂无关联咨询师' }}</strong> <span class="badge ok">心理咨询师</span></p>
+                  <p>{{ doctors[0]?.title || '预约后展示咨询师信息' }}</p>
+                  <p>擅长领域：{{ doctors[0]?.specialties || '情绪调节、压力管理、人际关系' }}</p>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button class="pixel-btn" type="button" @click="setCurrentPage('doctors')">查看详细资料</button>
+                <button class="pixel-btn secondary" type="button" @click="setCurrentPage('messages')">发送消息</button>
+              </div>
             </article>
-            <DataTable title="最近咨询记录摘要" eyebrow="Records" :columns="recordColumns" :rows="visitRecords" :loading="loading" @refresh="loadWorkspaceData" />
+            <DataTable title="最近咨询记录摘要" eyebrow="Records" :columns="patientRecordColumns" :rows="patientRecordRows" :loading="loading" @refresh="loadWorkspaceData" />
             <article class="paper info-panel">
               <h3><img :src="icons.leaf" alt="" />跟进建议 / 今日提醒</h3>
-              <p>{{ patients[0]?.follow_plan || '暂无跟进建议' }}</p>
-              <p>建议持续记录情绪和睡眠状态，必要时再次预约咨询。</p>
+              <div class="reminder-grid">
+                <div>
+                  <p><strong>今日提醒</strong></p>
+                  <p>记录情绪日记（10分钟）</p>
+                  <p>深呼吸练习（5分钟）</p>
+                  <p>睡前放松（早睡早起）</p>
+                </div>
+                <div>
+                  <p><strong>下一步要做什么</strong></p>
+                  <p>{{ patients[0]?.follow_plan || '准备本次咨询想讨论的话题' }}</p>
+                  <p>继续练习情绪调节方法</p>
+                  <p>完成建议的小目标并记录</p>
+                </div>
+              </div>
             </article>
           </section>
         </section>
@@ -223,6 +264,28 @@
           </section>
         </section>
 
+        <section v-else-if="currentPage === 'followPlans'" class="page-stack">
+          <article v-if="session.user.role === 'PATIENT'" class="paper follow-summary">
+            <div class="table-title"><div><p class="eyebrow">Follow</p><h3>我的跟进计划</h3></div><button class="pixel-btn secondary" type="button" @click="loadWorkspaceData">刷新</button></div>
+            <div class="follow-detail">
+              <p><strong>当前计划</strong><span>{{ currentFollowPlan?.follow_plan || '暂无跟进计划' }}</span></p>
+              <p><strong>下一步建议</strong><span>{{ currentFollowPlan?.latest_next_plan || '等待咨询师补充' }}</span></p>
+              <p><strong>最近咨询</strong><span>{{ formatDisplayDate(currentFollowPlan?.latest_visit_time) }}</span></p>
+            </div>
+          </article>
+          <article v-else class="paper form-panel">
+            <div class="table-title"><div><p class="eyebrow">Follow Edit</p><h3>更新跟进计划</h3></div><button class="pixel-btn secondary" type="button" @click="selectFollowPlan(followPlanRows[0])">选择首条</button></div>
+            <form class="profile-form" @submit.prevent="saveFollowPlan">
+              <label><span>来访者</span><select v-model.number="followPlanForm.patientId" required @change="syncSelectedFollowPlan"><option disabled :value="null">请选择来访者</option><option v-for="row in followPlanRows" :key="row.patient_id" :value="row.patient_id">{{ row.patient_name }} · {{ row.primary_topic }}</option></select></label>
+              <label><span>关注等级</span><select v-model="followPlanForm.assessmentLevel"><option value="普通">普通</option><option value="关注">关注</option><option value="重点">重点</option></select></label>
+              <label class="wide"><span>跟进计划</span><textarea v-model.trim="followPlanForm.followPlan" required placeholder="例如：2 天后回访 / 本周团辅 / 持续情绪日记"></textarea></label>
+              <label class="wide"><span>修改原因</span><input v-model.trim="followPlanForm.reason" required placeholder="写入审计日志" /></label>
+              <div class="form-actions wide"><button class="pixel-btn" type="submit" :disabled="followPlanSaving">{{ followPlanSaving ? '保存中...' : '保存跟进计划' }}</button><p v-if="followPlanMessage" :class="followPlanSuccess ? 'success-text' : 'error-text'">{{ followPlanMessage }}</p></div>
+            </form>
+          </article>
+          <DataTable title="跟进计划列表" eyebrow="Follow List" :columns="followPlanColumns" :rows="followPlanRows" :loading="loading" @refresh="loadWorkspaceData" @row-click="selectFollowPlan" />
+        </section>
+
         <article v-else class="paper empty-page"><p class="eyebrow">{{ currentNavLabel }}</p><h2>页面已纳入导航</h2><p>该模块后续继续补齐完整表单。</p></article>
       </section>
 
@@ -264,13 +327,15 @@ const loggingIn = ref(false);
 const loginError = ref('');
 const registering = ref(false);
 const registerError = ref('');
-const registerForm = ref({ username: '', password: '', confirmPassword: '', displayName: '', name: '', studentNo: '', college: '', grade: '', primaryTopic: '' });
+const registerForm = ref({ username: '', password: '', confirmPassword: '', displayName: '', name: '', studentNo: '', college: '', grade: '', primaryTopic: '', counselorId: null });
 const loading = ref(false);
 
 const appointments = ref([]);
 const patients = ref([]);
 const doctors = ref([]);
+const publicCounselors = ref([]);
 const visitRecords = ref([]);
+const followPlanRows = ref([]);
 const users = ref([]);
 const auditLogs = ref([]);
 const statistics = ref(null);
@@ -306,6 +371,10 @@ const bookingSubmitting = ref(false);
 const bookingMessage = ref('');
 const bookingSuccess = ref(false);
 const bookingForm = ref({ patientId: null, doctorId: null, topic: '考试焦虑', appointmentTime: '2026-07-23T14:00', location: '心桥心理咨询室', reason: '希望预约一次个体咨询' });
+const followPlanSaving = ref(false);
+const followPlanMessage = ref('');
+const followPlanSuccess = ref(false);
+const followPlanForm = ref({ patientId: null, assessmentLevel: '普通', followPlan: '', reason: '跟进计划更新' });
 
 const demoAccounts = [
   { label: '管理员', username: 'admin', password: 'admin123' },
@@ -316,8 +385,13 @@ const demoAccounts = [
 
 const appointmentColumns = [{ key: 'appointment_time', label: '时间' }, { key: 'doctor_name', label: '咨询师' }, { key: 'patient_name', label: '来访者' }, { key: 'topic', label: '类型/主题' }, { key: 'status', label: '状态', badge: true }, { key: 'location', label: '地点/方式' }];
 const patientColumns = [{ key: 'name', label: '来访者' }, { key: 'assessment_level', label: '关注等级', badge: true }, { key: 'primary_topic', label: '重点标签' }, { key: 'follow_plan', label: '跟进计划' }];
+const doctorPatientColumns = [{ key: 'name', label: '来访者' }, { key: 'assessment_level', label: '关注等级', badge: true }, { key: 'primary_topic', label: '重点标签' }, { key: 'latest_visit', label: '最近咨询' }, { key: 'status', label: '状态', badge: true }];
 const doctorColumns = [{ key: 'name', label: '咨询师' }, { key: 'title', label: '职称' }, { key: 'specialties', label: '擅长方向' }, { key: 'schedule_note', label: '本周排班' }];
 const recordColumns = [{ key: 'visit_time', label: '咨询时间' }, { key: 'doctor_name', label: '咨询师' }, { key: 'patient_name', label: '来访者' }, { key: 'diagnosis_summary', label: '内容摘要' }, { key: 'next_plan', label: '下一步' }];
+const doctorRecordColumns = [{ key: 'patient_name', label: '来访者' }, { key: 'visit_time', label: '咨询时间' }, { key: 'diagnosis_summary', label: '内容摘要' }, { key: 'status', label: '状态', badge: true }];
+const followColumns = [{ key: 'patient_name', label: '来访者' }, { key: 'plan', label: '计划' }, { key: 'next_plan', label: '下一步' }, { key: 'time', label: '时间' }];
+const followPlanColumns = [{ key: 'patient_name', label: '来访者' }, { key: 'assessment_level', label: '关注等级', badge: true }, { key: 'primary_topic', label: '重点标签' }, { key: 'follow_plan', label: '当前计划' }, { key: 'latest_next_plan', label: '最近建议' }, { key: 'latest_visit_time', label: '最近咨询' }];
+const patientRecordColumns = [{ key: 'time', label: '日期' }, { key: 'summary', label: '摘要' }, { key: 'counselor', label: '咨询师' }, { key: 'feeling', label: '状态', badge: true }];
 const userColumns = [{ key: 'created_at', label: '日期' }, { key: 'display_name', label: '用户' }, { key: 'role', label: '身份', badge: true }, { key: 'enabledLabel', label: '状态', badge: true }];
 const auditLogColumns = [{ key: 'created_at', label: '操作时间' }, { key: 'operator_name', label: '操作人' }, { key: 'operation_type', label: '操作类型', badge: true }, { key: 'target_description', label: '操作对象' }, { key: 'reason', label: '操作原因' }, { key: 'ip_address', label: 'IP' }];
 const inboxMessageColumns = [{ key: 'created_at', label: '时间' }, { key: 'sender_name', label: '发件人' }, { key: 'title', label: '主题' }, { key: 'readLabel', label: '状态', badge: true }];
@@ -332,7 +406,68 @@ const headerTitle = computed(() => session.value?.workspace.title || '');
 const currentNavLabel = computed(() => session.value?.navigation.find(item => item.key === currentPage.value)?.label || '功能页');
 const heroIcon = computed(() => session.value?.user.role === 'PATIENT' ? icons.heart : icons.overview);
 const focusPatients = computed(() => patients.value.filter(row => ['关注', '重点'].includes(row.assessment_level)));
+const currentFollowPlan = computed(() => followPlanRows.value[0] || null);
+const dashboardAppointments = computed(() => appointments.value.map(item => ({
+  ...item,
+  appointment_time: formatTimeOnly(item.appointment_time)
+})));
 const nextAppointment = computed(() => appointments.value[0] || null);
+const nextAppointmentDetail = computed(() => ({
+  time: formatAppointmentTime(nextAppointment.value?.appointment_time),
+  type: nextAppointment.value?.topic ? `${nextAppointment.value.topic}（面对面）` : '个体咨询（面对面）',
+  location: nextAppointment.value?.location || '心桥心理咨询室 · 咨询室A'
+}));
+const doctorPatients = computed(() => patients.value.map(patient => {
+  const visits = visitRecords.value.filter(record => record.patient_id === patient.id || record.patient_name === patient.name);
+  const latestVisit = visits[0]?.visit_time || appointments.value.find(item => item.patient_id === patient.id)?.appointment_time || '-';
+  return {
+    ...patient,
+    latest_visit: formatShortDate(latestVisit),
+    status: ['关注', '重点'].includes(patient.assessment_level) ? '跟进中' : '观察中'
+  };
+}));
+const doctorRecords = computed(() => {
+  const existingRecords = visitRecords.value.map(record => ({
+    ...record,
+    visit_time: formatShortDate(record.visit_time),
+    status: record.status || '已完成'
+  }));
+  const pendingRecords = appointments.value
+    .filter(item => item.status === '咨询已结束' && !visitRecords.value.some(record =>
+      record.appointment_id === item.id ||
+      (record.patient_id === item.patient_id && record.visit_time === item.appointment_time)
+    ))
+    .map(item => ({
+      id: `pending-${item.id}`,
+      patient_name: item.patient_name,
+      visit_time: formatShortDate(item.appointment_time),
+      diagnosis_summary: item.topic,
+      status: '待填写'
+    }));
+  return [...pendingRecords, ...existingRecords];
+});
+const followPlans = computed(() => patients.value.map(patient => ({
+  id: patient.id,
+  patient_name: patient.name,
+  plan: patient.follow_plan || '持续观察计划',
+  next_plan: patient.primary_topic || '情绪识别练习',
+  time: nextFollowTime(patient)
+})));
+const patientRecordRows = computed(() => {
+  const rows = visitRecords.value.map(record => ({
+    id: record.id,
+    time: formatShortDate(record.visit_time),
+    summary: record.diagnosis_summary || record.next_plan || '-',
+    counselor: record.doctor_name || nextAppointment.value?.doctor_name || '-',
+    feeling: record.status || '积极'
+  }));
+  if (rows.length > 0) return rows;
+  return [
+    { id: 'demo-1', time: '05月12日', summary: '探索压力来源与情绪识别', counselor: nextAppointment.value?.doctor_name || '张医生', feeling: '积极' },
+    { id: 'demo-2', time: '04月28日', summary: '人际冲突与沟通模式', counselor: nextAppointment.value?.doctor_name || '张医生', feeling: '平稳' },
+    { id: 'demo-3', time: '04月14日', summary: '自我认知与成长目标', counselor: nextAppointment.value?.doctor_name || '张医生', feeling: '积极' }
+  ];
+});
 const profileSummary = computed(() => session.value?.user.role === 'PATIENT' ? '这里保存你的预约信息、咨询偏好和联系资料，仅本人可见。' : '资料更新会进入审计链路。');
 const footerTip = computed(() => {
   if (!session.value) return '';
@@ -361,7 +496,18 @@ const operationSignalCards = computed(() => {
 
 function fillAccount(account) { loginForm.value = { username: account.username, password: account.password }; }
 async function handleLogin() { loggingIn.value = true; loginError.value = ''; try { session.value = await login(loginForm.value); saveSession(session.value); currentPage.value = session.value.navigation[0].key; await loadWorkspaceData(); } catch (error) { loginError.value = error.message || '登录失败'; } finally { loggingIn.value = false; } }
-async function handleRegister() { registerError.value = ''; if (registerForm.value.password !== registerForm.value.confirmPassword) { registerError.value = '两次输入的密码不一致'; return; } registering.value = true; try { const payload = { ...registerForm.value }; delete payload.confirmPassword; session.value = await register(payload); saveSession(session.value); currentPage.value = session.value.navigation[0].key; await loadWorkspaceData(); } catch (error) { registerError.value = error.message || '注册失败'; } finally { registering.value = false; } }
+async function handleRegister() { registerError.value = ''; if (registerForm.value.password !== registerForm.value.confirmPassword) { registerError.value = '两次输入的密码不一致'; return; } if (!registerForm.value.counselorId) { registerError.value = '请选择绑定辅导员'; return; } registering.value = true; try { const payload = { ...registerForm.value }; delete payload.confirmPassword; session.value = await register(payload); saveSession(session.value); currentPage.value = session.value.navigation[0].key; await loadWorkspaceData(); } catch (error) { registerError.value = error.message || '注册失败'; } finally { registering.value = false; } }
+
+async function loadPublicCounselors() {
+  try {
+    const response = await fetch('/api/public/counselors');
+    if (!response.ok) return;
+    publicCounselors.value = await response.json();
+    if (!registerForm.value.counselorId && publicCounselors.value.length > 0) registerForm.value.counselorId = publicCounselors.value[0].id;
+  } catch {
+    publicCounselors.value = [];
+  }
+}
 
 async function loadWorkspaceData() {
   if (!session.value) return;
@@ -371,7 +517,8 @@ async function loadWorkspaceData() {
       apiGet('/api/appointments', session.value).then(data => { appointments.value = data; }),
       apiGet('/api/patients', session.value).then(data => { patients.value = data; }),
       apiGet('/api/doctors', session.value).then(data => { doctors.value = data; }),
-      apiGet('/api/visit-records', session.value).then(data => { visitRecords.value = data; })
+      apiGet('/api/visit-records', session.value).then(data => { visitRecords.value = data; }),
+      apiGet('/api/follow-plans', session.value).then(data => { followPlanRows.value = data.map(normalizeFollowPlanRow); })
     ];
     if (session.value.user.role === 'ADMIN') {
       tasks.push(apiGet('/api/admin/users', session.value).then(data => { users.value = data.map(normalizeUserRow); if (!selectedUser.value && users.value.length) selectUser(users.value[0]); }));
@@ -383,6 +530,7 @@ async function loadWorkspaceData() {
     if (currentPage.value === 'messages') tasks.push(fetchMessages());
     await Promise.all(tasks);
     ensureBookingDefaults();
+    ensureFollowPlanDefaults();
   } finally { loading.value = false; }
 }
 
@@ -412,12 +560,68 @@ async function togglePermission(roleCode, permissionCode, checked) {
 async function setStatisticRange(range) { statisticRange.value = range; await loadStatistics(); }
 
 function ensureBookingDefaults() { if (!bookingForm.value.doctorId && doctors.value.length > 0) bookingForm.value.doctorId = doctors.value[0].id; if (!bookingForm.value.patientId && patients.value.length > 0) bookingForm.value.patientId = patients.value[0].id; }
-async function setCurrentPage(key) { currentPage.value = key; bookingMessage.value = ''; messageText.value = ''; profileMessage.value = ''; if (session.value) await loadWorkspaceData(); }
-async function handlePrimaryAction() { if (session.value?.user.role === 'ADMIN' || session.value?.user.role === 'PATIENT') await setCurrentPage('bookings'); }
+async function setCurrentPage(key) { currentPage.value = key; bookingMessage.value = ''; messageText.value = ''; profileMessage.value = ''; followPlanMessage.value = ''; if (session.value) await loadWorkspaceData(); }
+async function handlePrimaryAction() {
+  const role = session.value?.user.role;
+  if (role === 'ADMIN' || role === 'PATIENT') await setCurrentPage('bookings');
+  if (role === 'COUNSELOR') await setCurrentPage('patients');
+  if (role === 'DOCTOR') await setCurrentPage('visitRecords');
+}
 async function submitBooking() { bookingMessage.value = ''; bookingSuccess.value = false; bookingSubmitting.value = true; try { const payload = { ...bookingForm.value }; if (session.value.user.role !== 'ADMIN') delete payload.patientId; const result = await apiPost('/api/appointments', session.value, payload); bookingSuccess.value = true; bookingMessage.value = result.message || '预约申请已提交'; await loadWorkspaceData(); currentPage.value = 'appointments'; } catch (error) { bookingMessage.value = error.message || '预约提交失败'; } finally { bookingSubmitting.value = false; } }
 
 function normalizeUserRow(user) {
   return { ...user, enabledLabel: user.enabled ? '启用' : '停用' };
+}
+
+function normalizeFollowPlanRow(row) {
+  return {
+    ...row,
+    latest_next_plan: row.latest_next_plan || '暂无',
+    latest_visit_time: formatDisplayDate(row.latest_visit_time)
+  };
+}
+
+function ensureFollowPlanDefaults() {
+  if (session.value?.user.role === 'PATIENT') return;
+  if (!followPlanForm.value.patientId && followPlanRows.value.length > 0) {
+    selectFollowPlan(followPlanRows.value[0]);
+  }
+}
+
+function selectFollowPlan(row) {
+  if (!row) return;
+  followPlanForm.value = {
+    patientId: row.patient_id,
+    assessmentLevel: row.assessment_level || '普通',
+    followPlan: row.follow_plan || '',
+    reason: followPlanForm.value.reason || '跟进计划更新'
+  };
+}
+
+function syncSelectedFollowPlan() {
+  const row = followPlanRows.value.find(item => item.patient_id === followPlanForm.value.patientId);
+  if (row) selectFollowPlan(row);
+}
+
+async function saveFollowPlan() {
+  followPlanSaving.value = true;
+  followPlanMessage.value = '';
+  followPlanSuccess.value = false;
+  try {
+    await apiPut(`/api/patients/${followPlanForm.value.patientId}/follow-plan`, session.value, {
+      followPlan: followPlanForm.value.followPlan,
+      assessmentLevel: followPlanForm.value.assessmentLevel,
+      reason: followPlanForm.value.reason
+    });
+    followPlanSuccess.value = true;
+    followPlanMessage.value = '跟进计划已保存并写入审计日志';
+    await loadWorkspaceData();
+  } catch (error) {
+    followPlanSuccess.value = false;
+    followPlanMessage.value = error.message || '保存失败';
+  } finally {
+    followPlanSaving.value = false;
+  }
 }
 
 function selectUser(user) {
@@ -453,11 +657,44 @@ function logout() { session.value = null; currentPage.value = 'dashboard'; clear
 function avatarForRole(role) { if (role === 'ADMIN') return icons.admin; if (role === 'DOCTOR' || role === 'COUNSELOR') return icons.doctor; return icons.patient; }
 function navIcon(key) { return { dashboard: icons.overview, appointments: icons.calendar, bookings: icons.plus, doctors: icons.team, patients: icons.archive, visitRecords: icons.clipboard, users: icons.sectionTeam, auditLogs: icons.shield, statistics: icons.leaf, rbac: icons.shield, followPlans: icons.leaf, profile: icons.team, messages: icons.clipboard }[key] || icons.clipboard; }
 function cardIcon(key) { const lower = String(key).toLowerCase(); if (lower.includes('appointment')) return icons.calendar; if (lower.includes('doctor')) return icons.team; if (lower.includes('patient') || lower.includes('focus')) return icons.heart; if (lower.includes('health')) return icons.shield; if (lower.includes('record')) return icons.clipboard; return icons.star; }
+function formatAppointmentTime(value) {
+  if (!value) return '05月26日（周一） 14:00 - 15:00';
+  const text = String(value).replace('T', ' ');
+  return text.length >= 16 ? text.slice(5, 16).replace('-', '月').replace(' ', '日 ') : text;
+}
+function formatShortDate(value) {
+  if (!value) return '-';
+  const text = String(value).replace('T', ' ');
+  if (text.length >= 10) return `${text.slice(5, 7)}月${text.slice(8, 10)}日`;
+  return text;
+}
+function formatDisplayDate(value) {
+  if (!value) return '-';
+  const text = String(value).replace('T', ' ');
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.length >= 16 ? `${text.slice(5, 7)}月${text.slice(8, 10)}日 ${text.slice(11, 16)}` : `${text.slice(5, 7)}月${text.slice(8, 10)}日`;
+  return text;
+}
+function formatTimeOnly(value) {
+  if (!value) return '-';
+  const text = String(value).replace('T', ' ');
+  return text.length >= 16 ? text.slice(11, 16) : text;
+}
+function nextFollowTime(patient) {
+  if (patient.follow_plan?.includes('2 天')) return '2 天后';
+  if (patient.follow_plan?.includes('本周')) return '本周内';
+  return '明天 10:00';
+}
 function compactCardValue(value) {
-  const text = String(value ?? '');
+  const text = String(value ?? '').replace('T', ' ');
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return `${Number(text.slice(5, 7))}/${text.slice(8, 10)}`;
+  if (text.includes('回访')) return text.replace(/\s+/g, '').replace('后回访', '').replace('回访', '');
   return text.length > 8 ? `${text.slice(0, 8)}...` : text;
 }
 
 watch(session, value => { if (value) saveSession(value); });
-onMounted(loadWorkspaceData);
+watch(authMode, value => { if (value === 'register') loadPublicCounselors(); });
+onMounted(() => {
+  loadWorkspaceData();
+  loadPublicCounselors();
+});
 </script>

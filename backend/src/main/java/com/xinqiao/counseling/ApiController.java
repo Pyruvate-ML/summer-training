@@ -77,8 +77,19 @@ public class ApiController {
         if ("PATIENT".equals(role) && isBlank(request.primaryTopic())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "来访者注册必须填写主要诉求");
         }
+        if (request.counselorId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "来访者注册必须绑定辅导员");
+        }
         if (!"PATIENT".equals(role)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "当前仅开放来访者自助注册");
+        }
+        var counselorRows = jdbc.queryForList("""
+            SELECT id, name
+            FROM counselor
+            WHERE id = ?
+            """, request.counselorId());
+        if (counselorRows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "请选择有效的辅导员");
         }
         Integer exists = jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE username = ?", Integer.class, request.username().trim());
         if (exists != null && exists > 0) {
@@ -99,25 +110,47 @@ public class ApiController {
         }, userKey);
         long userId = userKey.getKey().longValue();
 
-        jdbc.update("""
+        KeyHolder patientKey = new GeneratedKeyHolder();
+        jdbc.update(connection -> {
+            var statement = connection.prepareStatement("""
             INSERT INTO patient(user_id, name, student_no, college, grade, primary_topic, assessment_level, follow_plan)
             VALUES (?, ?, ?, ?, ?, ?, '普通', '待首次咨询后生成跟进计划')
-            """,
-            userId,
-            request.name().trim(),
-            nullIfBlank(request.studentNo()),
-            nullIfBlank(request.college()),
-            nullIfBlank(request.grade()),
-            request.primaryTopic().trim()
-        );
+            """, java.sql.Statement.RETURN_GENERATED_KEYS);
+            statement.setLong(1, userId);
+            statement.setString(2, request.name().trim());
+            statement.setString(3, nullIfBlank(request.studentNo()));
+            statement.setString(4, nullIfBlank(request.college()));
+            statement.setString(5, nullIfBlank(request.grade()));
+            statement.setString(6, request.primaryTopic().trim());
+            return statement;
+        }, patientKey);
+        long patientId = patientKey.getKey().longValue();
+
+        jdbc.update("""
+            INSERT INTO patient_counselor(patient_id, counselor_id, relation_type, active)
+            VALUES (?, ?, '注册绑定辅导员', 1)
+            """, patientId, request.counselorId());
 
         var user = jdbc.queryForMap(
             "SELECT id, username, display_name, role FROM app_user WHERE id = ?",
             userId
         );
         auditLog.log(authForUsername(request.username()), "REGISTER", "user", userId,
-            request.displayName().trim() + "注册账号", null, null, "用户自助注册", clientIp(httpRequest));
+            request.displayName().trim() + "注册账号并绑定辅导员 " + counselorRows.get(0).get("name"),
+            null, null, "用户自助注册", clientIp(httpRequest));
         return sessionPayload(user);
+    }
+
+    @GetMapping("/public/counselors")
+    List<Map<String, Object>> publicCounselors() {
+        return jdbc.queryForList("""
+            SELECT c.id, c.name, c.department, c.office_location,
+                   u.display_name
+            FROM counselor c
+            JOIN app_user u ON u.id = c.user_id
+            WHERE u.enabled = 1
+            ORDER BY c.id
+            """);
     }
 
     @GetMapping("/me")
@@ -673,6 +706,77 @@ public class ApiController {
         return queryVisitRecords("WHERE p.user_id = " + user.get("id"));
     }
 
+    @GetMapping("/follow-plans")
+    List<Map<String, Object>> followPlans(Authentication auth) {
+        var user = currentUser(auth);
+        String role = (String) user.get("role");
+        if ("ADMIN".equals(role)) {
+            return queryFollowPlans("");
+        }
+        if ("DOCTOR".equals(role)) {
+            return queryFollowPlans("""
+                WHERE p.id IN (
+                  SELECT DISTINCT a.patient_id
+                  FROM appointment a
+                  JOIN doctor d ON d.id = a.doctor_id
+                  WHERE d.user_id = ?
+                )
+                """, user.get("id"));
+        }
+        if ("COUNSELOR".equals(role)) {
+            return queryFollowPlans("""
+                WHERE p.id IN (
+                  SELECT pc.patient_id
+                  FROM patient_counselor pc
+                  JOIN counselor c ON c.id = pc.counselor_id
+                  WHERE c.user_id = ? AND pc.active = 1
+                )
+                """, user.get("id"));
+        }
+        return queryFollowPlans("WHERE p.user_id = ?", user.get("id"));
+    }
+
+    @PutMapping("/patients/{patientId}/follow-plan")
+    Map<String, Object> updateFollowPlan(@PathVariable long patientId,
+                                         @RequestBody FollowPlanUpdateRequest request,
+                                         Authentication auth,
+                                         HttpServletRequest httpRequest) {
+        if (request == null || isBlank(request.followPlan())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "跟进计划不能为空");
+        }
+        assertCanManageFollowPlan(patientId, auth);
+        var beforeRows = jdbc.queryForList("""
+            SELECT name, assessment_level, follow_plan
+            FROM patient
+            WHERE id = ?
+            """, patientId);
+        if (beforeRows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "来访者不存在");
+        }
+        String assessmentLevel = isBlank(request.assessmentLevel())
+            ? String.valueOf(beforeRows.get(0).get("assessment_level"))
+            : request.assessmentLevel().trim();
+        jdbc.update("""
+            UPDATE patient
+            SET follow_plan = ?, assessment_level = ?
+            WHERE id = ?
+            """,
+            request.followPlan().trim(),
+            assessmentLevel,
+            patientId
+        );
+        var afterRows = jdbc.queryForList("""
+            SELECT name, assessment_level, follow_plan
+            FROM patient
+            WHERE id = ?
+            """, patientId);
+        auditLog.log(auth, "UPDATE_FOLLOW_PLAN", "patient", patientId,
+            "更新" + beforeRows.get(0).get("name") + "的跟进计划",
+            String.valueOf(beforeRows.get(0)), String.valueOf(afterRows.get(0)),
+            requireReason(request.reason(), "更新跟进计划必须填写原因"), clientIp(httpRequest));
+        return Map.of("success", true, "followPlan", afterRows.get(0));
+    }
+
     private List<Map<String, Object>> queryAppointments(String whereClause) {
         return jdbc.queryForList("""
             SELECT a.id, a.topic, a.appointment_time, a.status, a.location,
@@ -697,6 +801,29 @@ public class ApiController {
             %s
             ORDER BY vr.id DESC
             """.formatted(whereClause));
+    }
+
+    private List<Map<String, Object>> queryFollowPlans(String whereClause, Object... args) {
+        return jdbc.queryForList("""
+            SELECT p.id AS patient_id, p.name AS patient_name, p.student_no, p.college, p.grade,
+                   p.primary_topic, p.assessment_level, p.follow_plan,
+                   latest.visit_time AS latest_visit_time,
+                   latest.next_plan AS latest_next_plan,
+                   latest.doctor_name AS latest_doctor_name
+            FROM patient p
+            LEFT JOIN (
+                SELECT vr.patient_id, vr.visit_time, vr.next_plan, d.name AS doctor_name
+                FROM visit_record vr
+                JOIN doctor d ON d.id = vr.doctor_id
+                JOIN (
+                    SELECT patient_id, MAX(visit_time) AS latest_time
+                    FROM visit_record
+                    GROUP BY patient_id
+                ) picked ON picked.patient_id = vr.patient_id AND picked.latest_time = vr.visit_time
+            ) latest ON latest.patient_id = p.id
+            %s
+            ORDER BY FIELD(p.assessment_level, '重点', '关注', '普通'), p.id
+            """.formatted(whereClause), args);
     }
 
     private void notifyCounselorsForAppointment(Map<String, Object> operator, Long patientId,
@@ -807,6 +934,37 @@ public class ApiController {
         }
         if (allowed == null || allowed == 0) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权查看该来访者既往史");
+        }
+    }
+
+    private void assertCanManageFollowPlan(long patientId, Authentication auth) {
+        var user = currentUser(auth);
+        String role = (String) user.get("role");
+        if ("ADMIN".equals(role)) return;
+        if ("PATIENT".equals(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "来访者只能查看跟进计划，不能自行修改");
+        }
+
+        Integer allowed;
+        if ("DOCTOR".equals(role)) {
+            allowed = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                FROM appointment a
+                JOIN doctor d ON d.id = a.doctor_id
+                WHERE a.patient_id = ? AND d.user_id = ?
+                """, Integer.class, patientId, user.get("id"));
+        } else if ("COUNSELOR".equals(role)) {
+            allowed = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                FROM patient_counselor pc
+                JOIN counselor c ON c.id = pc.counselor_id
+                WHERE pc.patient_id = ? AND c.user_id = ? AND pc.active = 1
+                """, Integer.class, patientId, user.get("id"));
+        } else {
+            allowed = 0;
+        }
+        if (allowed == null || allowed == 0) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "当前身份无权更新该来访者跟进计划");
         }
     }
 
@@ -1328,7 +1486,8 @@ public class ApiController {
         String studentNo,
         String college,
         String grade,
-        String primaryTopic
+        String primaryTopic,
+        Long counselorId
     ) {}
 
     record AdminUserUpdateRequest(
@@ -1357,6 +1516,12 @@ public class ApiController {
         String topic,
         String appointmentTime,
         String location,
+        String reason
+    ) {}
+
+    record FollowPlanUpdateRequest(
+        String followPlan,
+        String assessmentLevel,
         String reason
     ) {}
 

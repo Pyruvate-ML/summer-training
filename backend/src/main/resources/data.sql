@@ -75,7 +75,8 @@ INSERT INTO patient(user_id, name, student_no, college, grade, primary_topic, as
   (6, '李同学', '2026002', '人文学院', '2026级', '宿舍关系', '关注', '本周团辅');
 
 INSERT INTO patient_counselor(patient_id, counselor_id, relation_type, active) VALUES
-  (1, 1, '学院辅导员', 1);
+  (1, 1, '学院辅导员', 1),
+  (2, 1, '学院辅导员', 1);
 
 INSERT INTO appointment(patient_id, doctor_id, topic, appointment_time, status, location) VALUES
   (1, 1, '考试焦虑', '2026-07-20 10:30:00', '已排定', '咨询室1'),

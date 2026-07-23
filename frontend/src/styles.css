@@ -189,12 +189,13 @@ button {
 .auth-tabs button,
 .role-choice button,
 .range-tabs button {
-  border: 0;
-  background: transparent;
+  border: 2px solid #b98953;
+  background: rgba(255, 248, 229, 0.72);
   color: var(--muted);
   padding: 8px 16px;
   font-weight: 700;
   font-size: 18px;
+  box-shadow: inset 1px 1px 0 #fff7dd, inset -1px -1px 0 #d4a062;
 }
 
 .auth-tabs button.active,
@@ -202,6 +203,7 @@ button {
 .range-tabs button.active {
   background: var(--wood-light);
   color: #fff8e8;
+  border-color: var(--wood-dark);
   box-shadow: inset 0 2px 0 #fff1c5, inset 0 -2px 0 #75400e;
 }
 
@@ -220,7 +222,8 @@ button {
   font-weight: 700;
 }
 
-.register-form input {
+.register-form input,
+.register-form select {
   width: 100%;
   border: 4px solid var(--wood);
   background: rgba(253, 241, 220, 0.92);
@@ -503,27 +506,104 @@ nav img {
 }
 
 .info-panel {
-  padding: 22px;
+  padding: 16px 18px;
+  overflow: hidden;
 }
 
 .info-panel h3 {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 16px;
-  font-size: clamp(26px, 2.4vw, 38px);
+  gap: 10px;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed #c58a4b;
+  font-size: clamp(20px, 1.45vw, 27px);
+  line-height: 1.12;
 }
 
 .info-panel h3 img {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   image-rendering: pixelated;
 }
 
 .info-panel p {
-  margin: 8px 0;
-  font-size: 22px;
+  margin: 7px 0;
+  font-size: clamp(14px, 0.98vw, 17px);
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.panel-actions .pixel-btn {
+  padding: 7px 12px;
+  font-size: 16px;
+  border-width: 3px;
+}
+
+.counselor-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.counselor-card img {
+  width: 58px;
+  height: 58px;
+  border: 3px solid var(--wood-dark);
+  background: #ffe3ac;
+  image-rendering: pixelated;
+}
+
+.reminder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reminder-grid > div {
+  padding: 10px 12px;
+  border: 2px dashed #c58a4b;
+  background: rgba(255, 248, 227, 0.82);
+}
+
+.reminder-grid p:first-child {
+  margin-top: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.follow-summary {
+  overflow: hidden;
+}
+
+.follow-detail {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.follow-detail p {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 2px dashed #c58a4b;
+  background: rgba(255, 248, 227, 0.82);
+  font-size: 20px;
   line-height: 1.45;
+}
+
+.follow-detail strong {
+  color: var(--muted);
 }
 
 .dashboard.compact {
@@ -617,40 +697,65 @@ nav img {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 14px;
-  padding: 18px;
+  gap: 10px;
+  min-height: 62px;
+  padding: 9px 14px;
   border-bottom: 2px dashed #c58a4b;
+}
+
+.table-title > div {
+  min-width: 0;
+}
+
+.table-title .eyebrow {
+  margin-bottom: 2px;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .table-title h3,
 .empty-page h2 {
   margin: 0;
-  font-size: clamp(28px, 3vw, 42px);
+  font-size: clamp(20px, 1.45vw, 27px);
+  line-height: 1.12;
+}
+
+.table-title .pixel-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 15px;
+  border-width: 3px;
+  box-shadow: inset 2px 2px 0 #edb96c, inset -2px -2px 0 #6c3514, 3px 3px 0 rgba(46, 24, 11, 0.24);
 }
 
 .table-wrap {
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 760px;
+  min-width: 0;
 }
 
 th,
 td {
-  padding: 15px 16px;
+  padding: 9px 10px;
   border-right: 2px dashed #c58a4b;
   border-bottom: 2px dashed #c58a4b;
   text-align: left;
-  font-size: 19px;
+  font-size: clamp(13px, 0.92vw, 16px);
+  line-height: 1.34;
+  overflow-wrap: anywhere;
 }
 
 th {
   background: #d3a36d;
   color: #fff8e8;
+  font-size: clamp(14px, 0.98vw, 17px);
+  line-height: 1.26;
 }
 
 td:last-child,
@@ -665,12 +770,14 @@ th:last-child {
 
 .badge {
   display: inline-block;
-  min-width: 72px;
+  min-width: 58px;
   border: 2px solid var(--wood);
-  padding: 3px 8px;
+  padding: 3px 7px;
   background: #fff8e5;
   text-align: center;
   font-weight: 700;
+  font-size: clamp(13px, 0.95vw, 16px);
+  line-height: 1.25;
 }
 
 .badge.ok {
@@ -1089,7 +1196,6 @@ th:last-child {
   min-height: clamp(132px, 12vw, 190px);
   border-color: var(--wood-dark);
   background:
-    url('/assets/xinqiao/env/png/cloud_large_1.png') 72% 14% / 128px auto no-repeat,
     url('/assets/xinqiao/env/png/fence_border.png') left bottom / auto 34px repeat-x,
     linear-gradient(to bottom, #d9edf5 0 64%, #dcebb6 64% 100%);
 }
